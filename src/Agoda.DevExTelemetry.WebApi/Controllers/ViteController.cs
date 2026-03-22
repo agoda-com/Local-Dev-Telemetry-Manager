@@ -1,0 +1,92 @@
+using System;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Agoda.DevExTelemetry.Core.Models.Entities;
+using Agoda.DevExTelemetry.Core.Models.Ingest;
+using Agoda.DevExTelemetry.Core.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Agoda.DevExTelemetry.WebApi.Controllers;
+
+[ApiController]
+public class ViteController : ControllerBase
+{
+    private readonly IIngestService _ingestService;
+    private readonly IEnvironmentDetector _environmentDetector;
+    private readonly IBuildCategoryClassifier _classifier;
+
+    public ViteController(
+        IIngestService ingestService,
+        IEnvironmentDetector environmentDetector,
+        IBuildCategoryClassifier classifier)
+    {
+        _ingestService = ingestService;
+        _environmentDetector = environmentDetector;
+        _classifier = classifier;
+    }
+
+    [HttpPost("vite")]
+    public async Task<IActionResult> Ingest([FromBody] VitePayload payload)
+    {
+        var metricType = payload.Type ?? "vite";
+        var platformStr = ((PlatformID)payload.Platform).ToString();
+        var environment = _environmentDetector.Detect(
+            payload.Hostname, payload.IsDebuggerAttached, platformStr, null);
+
+        string? devFeedbackType = null;
+        if (payload.DevFeedback?.Any(df =>
+                string.Equals(df.Type, "hmr", StringComparison.OrdinalIgnoreCase)) == true)
+        {
+            devFeedbackType = "hmr";
+        }
+
+        var (buildCategory, reloadType) = _classifier.Classify(metricType, devFeedbackType);
+
+        double.TryParse(payload.TimeTaken, out var timeTakenMs);
+
+        var extraData = new
+        {
+            payload.BundleStats,
+            payload.ModuleCount,
+            payload.File,
+            payload.ViteVersion,
+            payload.DevFeedback,
+            payload.Timestamp,
+            payload.BuiltAt,
+            payload.TotalMemory,
+            payload.CpuModels,
+            payload.CpuSpeed
+        };
+
+        var metric = new BuildMetric
+        {
+            Id = payload.Id ?? Guid.NewGuid().ToString(),
+            UserName = payload.UserName ?? string.Empty,
+            CpuCount = payload.CpuCount,
+            Hostname = payload.Hostname ?? string.Empty,
+            Platform = platformStr,
+            Os = payload.Os ?? string.Empty,
+            Branch = payload.Branch ?? string.Empty,
+            ProjectName = payload.ProjectName ?? string.Empty,
+            Repository = payload.Repository ?? string.Empty,
+            RepositoryName = payload.RepositoryName ?? string.Empty,
+            TimeTakenMs = timeTakenMs,
+            MetricType = metricType,
+            BuildCategory = buildCategory,
+            ReloadType = reloadType,
+            ToolVersion = payload.ViteVersion,
+            CommitSha = payload.CommitSha,
+            IsDebuggerAttached = payload.IsDebuggerAttached,
+            ExecutionEnvironment = environment,
+            SourceEndpoint = "/vite",
+            ExtraData = JsonSerializer.Serialize(extraData)
+        };
+
+        await _ingestService.IngestBuildMetricAsync(metric);
+        await _ingestService.StoreRawPayloadAsync("/vite", "application/json",
+            JsonSerializer.Serialize(payload));
+
+        return Ok();
+    }
+}
