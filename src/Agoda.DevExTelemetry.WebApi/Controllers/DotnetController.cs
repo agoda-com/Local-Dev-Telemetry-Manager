@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -41,7 +42,8 @@ public class DotnetController : ControllerBase
             payload.Hostname, payload.IsDebuggerAttached, platformStr, null);
         var (buildCategory, reloadType) = _classifier.Classify(metricType, null);
 
-        double.TryParse(payload.TimeTaken, out var timeTakenMs);
+        if (!TryParseFinitePositive(payload.TimeTaken, out var timeTakenMs))
+            return BadRequest(new { error = "Invalid timeTaken value" });
 
         var metric = new BuildMetric
         {
@@ -140,6 +142,22 @@ public class DotnetController : ControllerBase
             JsonSerializer.Serialize(payload));
 
         return Ok();
+    }
+
+    private static bool TryParseFinitePositive(string? value, out double result)
+    {
+        result = 0;
+        if (string.IsNullOrWhiteSpace(value))
+            return true;
+
+        if (!double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands,
+                CultureInfo.InvariantCulture, out result))
+            return false;
+
+        if (!double.IsFinite(result) || result < 0)
+            return false;
+
+        return true;
     }
 
     private static string? Truncate(string? value, int maxLength)

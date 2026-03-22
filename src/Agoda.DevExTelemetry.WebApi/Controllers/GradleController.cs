@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Entities;
@@ -35,7 +36,11 @@ public class GradleController : ControllerBase
 
         var (buildCategory, reloadType) = _classifier.Classify("GradleTalaiot", null);
 
-        double.TryParse(payload.DurationMs, out var timeTakenMs);
+        if (!double.TryParse(payload.DurationMs, NumberStyles.Float | NumberStyles.AllowThousands,
+                CultureInfo.InvariantCulture, out var timeTakenMs) && !string.IsNullOrWhiteSpace(payload.DurationMs))
+            return BadRequest(new { error = "Invalid durationMs value" });
+        if (!double.IsFinite(timeTakenMs) || timeTakenMs < 0)
+            return BadRequest(new { error = "Invalid durationMs value" });
         int.TryParse(payload.CpuCount, out var cpuCount);
 
         var extraData = new

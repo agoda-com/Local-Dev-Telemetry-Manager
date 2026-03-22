@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -42,7 +43,11 @@ public class WebpackController : ControllerBase
 
         var (buildCategory, reloadType) = _classifier.Classify("webpack", devFeedbackType);
 
-        double.TryParse(payload.TimeTaken, out var timeTakenMs);
+        if (!double.TryParse(payload.TimeTaken, NumberStyles.Float | NumberStyles.AllowThousands,
+                CultureInfo.InvariantCulture, out var timeTakenMs) && !string.IsNullOrWhiteSpace(payload.TimeTaken))
+            return BadRequest(new { error = "Invalid timeTaken value" });
+        if (!double.IsFinite(timeTakenMs) || timeTakenMs < 0)
+            return BadRequest(new { error = "Invalid timeTaken value" });
 
         var extraData = new
         {

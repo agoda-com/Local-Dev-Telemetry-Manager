@@ -44,6 +44,15 @@ public class FilterService : IFilterService
             .OrderBy(b => b)
             .ToListAsync();
 
+        var buildMetricPlatforms = _db.BuildMetrics.Select(b => b.Platform);
+        var testRunPlatforms = _db.TestRuns.Select(t => t.Platform);
+        var platforms = await buildMetricPlatforms
+            .Union(testRunPlatforms)
+            .Where(p => p != "")
+            .Distinct()
+            .OrderBy(p => p)
+            .ToListAsync();
+
         var testRunners = await _db.TestRuns
             .Select(t => t.TestRunner)
             .Where(t => t != "")
@@ -58,6 +67,6 @@ public class FilterService : IFilterService
             .OrderBy(m => m)
             .ToListAsync();
 
-        return new FilterOptionsViewModel(projects, repositories, branches, testRunners, metricTypes);
+        return new FilterOptionsViewModel(projects, repositories, branches, platforms, testRunners, metricTypes);
     }
 }

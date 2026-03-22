@@ -266,7 +266,7 @@ public class DashboardService : IDashboardService
         }
 
         if (!string.IsNullOrEmpty(filters.Platform))
-            query = query.Where(r => r.TestRunner == filters.Platform);
+            query = query.Where(r => r.Platform == filters.Platform);
 
         if (!string.IsNullOrEmpty(filters.Project))
             query = query.Where(r => r.ProjectName == filters.Project);
@@ -298,7 +298,7 @@ public class DashboardService : IDashboardService
         }
 
         if (!string.IsNullOrEmpty(filters.Platform))
-            query = query.Where(b => b.MetricType == filters.Platform);
+            query = query.Where(b => b.Platform == filters.Platform);
 
         if (!string.IsNullOrEmpty(filters.Project))
             query = query.Where(b => b.ProjectName == filters.Project);

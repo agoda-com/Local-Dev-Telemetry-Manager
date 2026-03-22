@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Xml.Linq;
 using Agoda.DevExTelemetry.Core.Models.Entities;
 using Agoda.IoC.Core;
@@ -5,9 +6,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Agoda.DevExTelemetry.Core.Services;
 
+public class JUnitXmlParseResult
+{
+    public List<TestCase> TestCases { get; init; } = new();
+    public bool HasParseErrors { get; init; }
+    public string? ErrorMessage { get; init; }
+}
+
 public interface IJUnitXmlParser
 {
-    IEnumerable<TestCase> Parse(Stream xmlStream, string testRunId);
+    JUnitXmlParseResult Parse(Stream xmlStream, string testRunId);
 }
 
 [RegisterPerRequest]
@@ -21,7 +29,7 @@ public class JUnitXmlParser : IJUnitXmlParser
         _logger = logger;
     }
 
-    public IEnumerable<TestCase> Parse(Stream xmlStream, string testRunId)
+    public JUnitXmlParseResult Parse(Stream xmlStream, string testRunId)
     {
         XDocument doc;
         try
@@ -31,27 +39,31 @@ public class JUnitXmlParser : IJUnitXmlParser
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to parse JUnit XML");
-            yield break;
+            return new JUnitXmlParseResult
+            {
+                HasParseErrors = true,
+                ErrorMessage = $"Invalid XML: {ex.Message}"
+            };
         }
 
+        var testCases = new List<TestCase>();
         var testCaseElements = doc.Descendants("testcase");
 
         foreach (var element in testCaseElements)
         {
-            TestCase? testCase;
             try
             {
-                testCase = ParseTestCase(element, testRunId);
+                var testCase = ParseTestCase(element, testRunId);
+                if (testCase != null)
+                    testCases.Add(testCase);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Skipping malformed testcase element");
-                continue;
             }
-
-            if (testCase != null)
-                yield return testCase;
         }
+
+        return new JUnitXmlParseResult { TestCases = testCases };
     }
 
     private static TestCase ParseTestCase(XElement element, string testRunId)
@@ -61,7 +73,8 @@ public class JUnitXmlParser : IJUnitXmlParser
         var timeStr = element.Attribute("time")?.Value;
 
         double? durationMs = null;
-        if (double.TryParse(timeStr, out var timeSeconds))
+        if (double.TryParse(timeStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var timeSeconds)
+            && double.IsFinite(timeSeconds) && timeSeconds >= 0)
             durationMs = timeSeconds * 1000;
 
         var status = DetermineStatus(element);

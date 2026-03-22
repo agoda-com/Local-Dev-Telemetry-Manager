@@ -51,8 +51,10 @@ public class TestDataController : ControllerBase
         foreach (var file in files)
         {
             using var stream = file.OpenReadStream();
-            var testCases = _junitXmlParser.Parse(stream, testRunId);
-            allTestCases.AddRange(testCases);
+            var result = _junitXmlParser.Parse(stream, testRunId);
+            if (result.HasParseErrors)
+                return BadRequest(new { error = result.ErrorMessage ?? "Invalid JUnit XML", fileName = file.FileName });
+            allTestCases.AddRange(result.TestCases);
         }
 
         int passed = allTestCases.Count(tc => tc.Status == "Passed");
