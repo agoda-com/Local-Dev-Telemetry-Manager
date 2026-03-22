@@ -14,6 +14,7 @@ const sampleOptions: FilterOptions = {
   projects: ['ProjectA', 'ProjectB'],
   repositories: ['repo-alpha'],
   branches: ['main'],
+  platforms: ['Win32NT', 'Unix'],
   testRunners: ['NUnit'],
   metricTypes: ['API', 'Clientside'],
 };

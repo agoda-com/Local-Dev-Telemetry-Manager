@@ -1,14 +1,13 @@
 export interface FilterParams {
   environment?: string;
   platform?: string;
-  projectName?: string;
+  project?: string;
   repository?: string;
   branch?: string;
   testRunner?: string;
   metricType?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  dateRange?: string;
+  from?: string;
+  to?: string;
   page?: number;
   pageSize?: number;
 }
@@ -131,6 +130,7 @@ export interface FilterOptions {
   projects: string[];
   repositories: string[];
   branches: string[];
+  platforms: string[];
   testRunners: string[];
   metricTypes: string[];
 }

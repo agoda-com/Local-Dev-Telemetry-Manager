@@ -29,7 +29,7 @@ export function GlobalFilters({ filters, options, onFiltersChange }: GlobalFilte
         placeholder="All Platforms"
         className="max-w-xs"
       >
-        {(options.metricTypes ?? []).map((p) => (
+        {(options.platforms ?? []).map((p) => (
           <MultiSelectItem key={p} value={p}>
             {p}
           </MultiSelectItem>

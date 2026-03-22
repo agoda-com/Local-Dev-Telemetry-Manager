@@ -13,6 +13,7 @@ export const mockFilterOptions: FilterOptions = {
   projects: ['ProjectA', 'ProjectB'],
   repositories: ['repo-alpha', 'repo-beta'],
   branches: ['main', 'develop'],
+  platforms: ['Win32NT', 'Unix'],
   testRunners: ['NUnit', 'xUnit'],
   metricTypes: ['API', 'Clientside'],
 };

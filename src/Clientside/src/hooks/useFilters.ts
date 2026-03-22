@@ -6,6 +6,7 @@ const EMPTY_OPTIONS: FilterOptions = {
   projects: [],
   repositories: [],
   branches: [],
+  platforms: [],
   testRunners: [],
   metricTypes: [],
 };
@@ -17,12 +18,25 @@ const DEFAULT_FILTERS: FilterState = {
   dateRange: '30d',
 };
 
+function parseDateRange(range: string): { from?: string; to?: string } {
+  if (range === 'all') return {};
+  const now = new Date();
+  const to = now.toISOString();
+  const match = /^(\d+)d$/.exec(range);
+  if (!match) return {};
+  const days = parseInt(match[1], 10);
+  const from = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+  return { from, to };
+}
+
 export function toFilterParams(state: FilterState, page?: number, pageSize?: number): FilterParams {
+  const { from, to } = parseDateRange(state.dateRange);
   return {
     environment: state.environment !== 'all' ? state.environment : undefined,
     platform: state.platforms.length > 0 ? state.platforms.join(',') : undefined,
-    projectName: state.projectName || undefined,
-    dateRange: state.dateRange !== 'all' ? state.dateRange : undefined,
+    project: state.projectName || undefined,
+    from,
+    to,
     page,
     pageSize,
   };
