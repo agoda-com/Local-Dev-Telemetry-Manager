@@ -46,7 +46,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:3000")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -90,12 +90,17 @@ app.UseRequestDecompression();
 app.UseCors();
 app.UseSerilogRequestLogging();
 app.UseRouting();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapControllers();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Agoda.DevExTelemetry");
-    c.RoutePrefix = string.Empty;
 });
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
