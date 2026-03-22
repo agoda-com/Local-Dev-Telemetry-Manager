@@ -22,6 +22,25 @@ src/
 └── Agoda.DevExTelemetry.sln
 ```
 
+## Telemetry Clients
+
+These are the client libraries that instrument developer tooling and send telemetry to this server:
+
+| Client Package | Install | Sends To | Source |
+|---|---|---|---|
+| `Agoda.Builds.Metrics` | [NuGet](https://www.nuget.org/packages/Agoda.Builds.Metrics) | `POST /dotnet` | [dotnet-build-metrics](https://github.com/agoda-com/dotnet-build-metrics) |
+| `Agoda.DevFeedback.AspNetStartup` | NuGet | `POST /dotnet` | [dotnet-build-metrics](https://github.com/agoda-com/dotnet-build-metrics) |
+| `Agoda.Tests.Metrics.NUnit` | NuGet | `POST /dotnet/nunit` | [dotnet-build-metrics](https://github.com/agoda-com/dotnet-build-metrics) |
+| `Agoda.Tests.Metrics.xUnit` | NuGet | `POST /dotnet/nunit` | [dotnet-build-metrics](https://github.com/agoda-com/dotnet-build-metrics) |
+| `agoda-devfeedback-webpack` | npm | `POST /webpack` | [devfeedback-js](https://github.com/agoda-com/devfeedback-js) |
+| `agoda-devfeedback-vite2` | npm | `POST /vite` | [devfeedback-js](https://github.com/agoda-com/devfeedback-js) |
+| `agoda-devfeedback-rsbuild` | npm | `POST /vite` | [devfeedback-js](https://github.com/agoda-com/devfeedback-js) |
+| JUnit reporter | Maven | `POST /junit` | [java-local-metrics](https://github.com/agoda-com/java-local-metrics) |
+| ScalaTest reporter | sbt | `POST /scala/scalatest` | [java-local-metrics](https://github.com/agoda-com/java-local-metrics) |
+| Talaiot Gradle plugin | Gradle | `POST /gradletalaiot` | [Talaiot](https://github.com/cdsap/Talaiot) (external) |
+| Jest reporter | npm | `POST /jest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |
+| Vitest reporter | npm | `POST /vitest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |
+
 ## Ingest Endpoints
 
 | Endpoint | Payload Type |
@@ -33,7 +52,7 @@ src/
 | `POST /vitest` | Vitest test results |
 | `POST /scala/scalatest` | ScalaTest results (gzip supported) |
 | `POST /webpack` | Webpack build metrics |
-| `POST /vite` | Vite build metrics |
+| `POST /vite` | Vite build / HMR metrics |
 | `POST /gradletalaiot` | Gradle Talaiot build metrics |
 | `POST /testdata/junit` | JUnit XML multipart upload |
 
