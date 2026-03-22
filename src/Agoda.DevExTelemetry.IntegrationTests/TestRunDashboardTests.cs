@@ -8,16 +8,20 @@ using Shouldly;
 
 namespace Agoda.DevExTelemetry.IntegrationTests;
 
-[TestFixture]
+[TestFixture(DatabaseProvider.Sqlite)]
+[TestFixture(DatabaseProvider.PostgreSql)]
 public class TestRunDashboardTests
 {
+    private readonly DatabaseProvider _provider;
     private CustomWebApplicationFactory _factory = null!;
     private HttpClient _client = null!;
+
+    public TestRunDashboardTests(DatabaseProvider provider) => _provider = provider;
 
     [SetUp]
     public void SetUp()
     {
-        _factory = new CustomWebApplicationFactory();
+        _factory = new CustomWebApplicationFactory(_provider);
         _client = _factory.CreateClient();
     }
 
