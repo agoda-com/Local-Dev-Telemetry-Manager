@@ -43,6 +43,26 @@ src/
 - **API Build Performance** — compile, startup, and first response times
 - **Clientside Build Performance** — hot reload vs full build metrics
 
+## Client Configuration
+
+The telemetry clients (devfeedback NuGet packages, webpack/vite plugins, test reporter plugins) need to know where to send data. There are two ways to point them at your deployment:
+
+### Option 1: Environment Variable Override
+
+Set the `DEVFEEDBACK_URL` environment variable on developer machines to your server's URL:
+
+```bash
+export DEVFEEDBACK_URL=https://your-devex-telemetry.azurewebsites.net
+```
+
+This overrides the default URL in all compilation metrics clients. You can set this in shell profiles, dotfiles, or machine-level environment variables.
+
+### Option 2: Internal DNS
+
+If you control your organization's DNS, you can create a DNS record that resolves the default hostname used by the compilation metrics clients to your deployment's IP. This way clients work without any local configuration — traffic is routed transparently via your internal DNS server.
+
+This approach is preferable for large teams since it requires zero setup on individual developer machines.
+
 ## Development
 
 ### Prerequisites
