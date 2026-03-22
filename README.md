@@ -1,6 +1,10 @@
-# Agoda.DevExTelemetry
+<p align="center">
+  <img src="src/Clientside/src/DevExSml.png" alt="DX Telemetry logo" width="120" />
+</p>
 
-A full-stack developer experience telemetry dashboard that collects, stores, and visualizes build and test metrics from development tools.
+# DX Telemetry Manager (`Agoda.DevExTelemetry`)
+
+A full-stack **DX telemetry** dashboard that collects, stores, and visualizes build and test metrics from development tools.
 
 This is an internal tool designed to be deployed within your organization's infrastructure. It receives telemetry from build plugins and test runners across your engineering teams, providing visibility into compile times, test pass rates, hot reload performance, and other developer productivity signals. It is **not** intended to be exposed to the public internet.
 
