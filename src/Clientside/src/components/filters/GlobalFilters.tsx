@@ -29,8 +29,10 @@ export function GlobalFilters({ filters, options, onFiltersChange }: GlobalFilte
         placeholder="All Platforms"
         className="max-w-xs"
       >
-        {(options.metricTypes ?? []).map(p => (
-          <MultiSelectItem key={p} value={p}>{p}</MultiSelectItem>
+        {(options.metricTypes ?? []).map((p) => (
+          <MultiSelectItem key={p} value={p}>
+            {p}
+          </MultiSelectItem>
         ))}
       </MultiSelect>
 
@@ -40,8 +42,10 @@ export function GlobalFilters({ filters, options, onFiltersChange }: GlobalFilte
         placeholder="All Projects"
         className="max-w-xs"
       >
-        {(options.projects ?? []).map(p => (
-          <SelectItem key={p} value={p}>{p}</SelectItem>
+        {(options.projects ?? []).map((p) => (
+          <SelectItem key={p} value={p}>
+            {p}
+          </SelectItem>
         ))}
       </Select>
 

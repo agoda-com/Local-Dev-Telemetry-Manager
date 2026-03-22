@@ -22,10 +22,14 @@ const runColumns: ColumnDef<TestRunItem, unknown>[] = [
   {
     accessorKey: 'totalDurationMs',
     header: 'Duration',
-    cell: info => formatMs(info.getValue() as number),
+    cell: (info) => formatMs(info.getValue() as number),
   },
   { accessorKey: 'executionEnvironment', header: 'Env' },
-  { accessorKey: 'receivedAt', header: 'Received', cell: info => (info.getValue() as string).slice(0, 10) },
+  {
+    accessorKey: 'receivedAt',
+    header: 'Received',
+    cell: (info) => (info.getValue() as string).slice(0, 10),
+  },
 ];
 
 export function TestRunDashboard() {
@@ -45,11 +49,7 @@ export function TestRunDashboard() {
       <GlobalFilters filters={filters} options={options} onFiltersChange={setFilters} />
 
       <DashboardGrid columns={4}>
-        <StatCard
-          title="Total Runs"
-          value={summary?.totalRuns ?? 0}
-          icon={RiTimeLine}
-        />
+        <StatCard title="Total Runs" value={summary?.totalRuns ?? 0} icon={RiTimeLine} />
         <StatCard
           title="Avg Duration"
           value={formatMs(summary?.avgDurationMs)}
@@ -60,11 +60,7 @@ export function TestRunDashboard() {
           value={formatPercent(summary?.passRate)}
           icon={RiCheckboxCircleLine}
         />
-        <StatCard
-          title="Failures"
-          value={totalFailures}
-          icon={RiCloseCircleLine}
-        />
+        <StatCard title="Failures" value={totalFailures} icon={RiCloseCircleLine} />
       </DashboardGrid>
 
       <DashboardGrid columns={2}>
@@ -96,7 +92,7 @@ export function TestRunDashboard() {
             {
               id: 'actions',
               header: '',
-              cell: info => (
+              cell: (info) => (
                 <button
                   onClick={() => navigate(`/test-runs/${info.row.original.id}`)}
                   style={{ color: '#2563eb', fontWeight: 500, fontSize: '0.875rem' }}

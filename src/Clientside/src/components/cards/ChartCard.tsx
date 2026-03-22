@@ -29,9 +29,7 @@ export function ChartCard({ title, subtitle, dateRange, onViewDetail, children }
           )}
         </div>
       </Flex>
-      <div className="mt-4">
-        {children}
-      </div>
+      <div className="mt-4">{children}</div>
     </Card>
   );
 }

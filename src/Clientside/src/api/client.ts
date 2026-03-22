@@ -172,11 +172,17 @@ export async function fetchApiBuildSummary(filters: FilterParams): Promise<ApiBu
   return fetchJson<ApiBuildSummary>(`/api/build-metrics/api-summary${buildQuery(filters)}`);
 }
 
-export async function fetchClientsideBuildSummary(filters: FilterParams): Promise<ClientsideBuildSummary> {
-  return fetchJson<ClientsideBuildSummary>(`/api/build-metrics/clientside-summary${buildQuery(filters)}`);
+export async function fetchClientsideBuildSummary(
+  filters: FilterParams,
+): Promise<ClientsideBuildSummary> {
+  return fetchJson<ClientsideBuildSummary>(
+    `/api/build-metrics/clientside-summary${buildQuery(filters)}`,
+  );
 }
 
-export async function fetchBuildMetrics(filters: FilterParams): Promise<PaginatedResult<BuildMetricItem>> {
+export async function fetchBuildMetrics(
+  filters: FilterParams,
+): Promise<PaginatedResult<BuildMetricItem>> {
   return fetchJson<PaginatedResult<BuildMetricItem>>(`/api/build-metrics${buildQuery(filters)}`);
 }
 

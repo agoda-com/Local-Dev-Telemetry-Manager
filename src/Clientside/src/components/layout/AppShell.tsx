@@ -16,7 +16,7 @@ export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const currentIndex = TABS.findIndex(t => location.pathname.startsWith(t.path));
+  const currentIndex = TABS.findIndex((t) => location.pathname.startsWith(t.path));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -27,15 +27,13 @@ export function AppShell({ children }: AppShellProps) {
           onIndexChange={(i) => navigate(TABS[i].path)}
         >
           <TabList variant="line">
-            {TABS.map(t => (
+            {TABS.map((t) => (
               <Tab key={t.path}>{t.name}</Tab>
             ))}
           </TabList>
         </TabGroup>
       </header>
-      <main className="p-6 max-w-screen-2xl mx-auto">
-        {children}
-      </main>
+      <main className="p-6 max-w-screen-2xl mx-auto">{children}</main>
     </div>
   );
 }

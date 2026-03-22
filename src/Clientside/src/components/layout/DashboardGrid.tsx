@@ -13,9 +13,5 @@ const GRID_CLASSES: Record<number, string> = {
 };
 
 export function DashboardGrid({ columns, children }: DashboardGridProps) {
-  return (
-    <div className={`${GRID_CLASSES[columns]} mb-6`}>
-      {children}
-    </div>
-  );
+  return <div className={`${GRID_CLASSES[columns]} mb-6`}>{children}</div>;
 }

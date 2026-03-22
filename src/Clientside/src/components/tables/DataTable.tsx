@@ -52,9 +52,9 @@ export function DataTable<T>({
     <div>
       <Table>
         <TableHead>
-          {table.getHeaderGroups().map(headerGroup => (
+          {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map(header => (
+              {headerGroup.headers.map((header) => (
                 <TableHeaderCell
                   key={header.id}
                   className={header.column.getCanSort() ? 'cursor-pointer select-none' : ''}
@@ -62,8 +62,12 @@ export function DataTable<T>({
                 >
                   <div className="flex items-center gap-1">
                     {flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getIsSorted() === 'asc' && <RiArrowUpSLine className="h-4 w-4" />}
-                    {header.column.getIsSorted() === 'desc' && <RiArrowDownSLine className="h-4 w-4" />}
+                    {header.column.getIsSorted() === 'asc' && (
+                      <RiArrowUpSLine className="h-4 w-4" />
+                    )}
+                    {header.column.getIsSorted() === 'desc' && (
+                      <RiArrowDownSLine className="h-4 w-4" />
+                    )}
                   </div>
                 </TableHeaderCell>
               ))}
@@ -78,9 +82,9 @@ export function DataTable<T>({
               </TableCell>
             </TableRow>
           ) : (
-            table.getRowModel().rows.map(row => (
+            table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
-                {row.getVisibleCells().map(cell => (
+                {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
@@ -94,7 +98,8 @@ export function DataTable<T>({
       {onPageChange && totalCount != null && totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
           <Text className="text-sm text-gray-500">
-            Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} of {totalCount}
+            Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} of{' '}
+            {totalCount}
           </Text>
           <div className="flex gap-2">
             <button

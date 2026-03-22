@@ -18,10 +18,14 @@ const buildColumns: ColumnDef<BuildMetricItem, unknown>[] = [
   {
     accessorKey: 'timeTakenMs',
     header: 'Duration',
-    cell: info => formatMs(info.getValue() as number),
+    cell: (info) => formatMs(info.getValue() as number),
   },
   { accessorKey: 'executionEnvironment', header: 'Env' },
-  { accessorKey: 'receivedAt', header: 'Received', cell: info => (info.getValue() as string).slice(0, 10) },
+  {
+    accessorKey: 'receivedAt',
+    header: 'Received',
+    cell: (info) => (info.getValue() as string).slice(0, 10),
+  },
 ];
 
 export function ApiBuildDashboard() {

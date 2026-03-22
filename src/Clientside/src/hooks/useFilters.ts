@@ -36,14 +36,18 @@ export function useFilters() {
   useEffect(() => {
     let cancelled = false;
     fetchFilters()
-      .then(opts => {
+      .then((opts) => {
         if (!cancelled) setOptions(opts);
       })
-      .catch(() => { /* filter options are non-critical */ })
+      .catch(() => {
+        /* filter options are non-critical */
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return { filters, options, setFilters, loading };

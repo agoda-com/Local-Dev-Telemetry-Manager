@@ -29,5 +29,11 @@ jobs:
           cache-dependency-path: src/Clientside/package-lock.json
       - run: npm ci --legacy-peer-deps
         working-directory: src/Clientside
+      - name: Prettier check
+        run: npm run format:check
+        working-directory: src/Clientside
+      - name: ESLint
+        run: npm run lint
+        working-directory: src/Clientside
       - run: npm run build
         working-directory: src/Clientside

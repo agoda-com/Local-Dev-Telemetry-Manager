@@ -24,17 +24,14 @@ export function useApiBuildMetrics(filters: FilterState) {
     setLoading(true);
     setError(null);
 
-    Promise.all([
-      fetchApiBuildSummary(params),
-      fetchBuildMetrics({ ...params, metricType: 'API' }),
-    ])
+    Promise.all([fetchApiBuildSummary(params), fetchBuildMetrics({ ...params, metricType: 'API' })])
       .then(([summary, b]) => {
         if (!cancelled) {
           setData(summary);
           setBuilds(b);
         }
       })
-      .catch(e => {
+      .catch((e) => {
         if (!cancelled) {
           setError(e instanceof Error ? e : new Error(String(e)));
         }
@@ -43,7 +40,9 @@ export function useApiBuildMetrics(filters: FilterState) {
         if (!cancelled) setLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [filterKey, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { data, builds, loading, error, page, setPage };

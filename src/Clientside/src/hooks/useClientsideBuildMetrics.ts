@@ -34,7 +34,7 @@ export function useClientsideBuildMetrics(filters: FilterState) {
           setBuilds(b);
         }
       })
-      .catch(e => {
+      .catch((e) => {
         if (!cancelled) {
           setError(e instanceof Error ? e : new Error(String(e)));
         }
@@ -43,7 +43,9 @@ export function useClientsideBuildMetrics(filters: FilterState) {
         if (!cancelled) setLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [filterKey, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { data, builds, loading, error, page, setPage };

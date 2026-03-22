@@ -297,3 +297,9 @@ app_settings_backup.config
 
 # Consul local cache
 /**/consul-config.json
+
+# Playwright
+**/test-results/
+**/playwright-report/
+**/blob-report/
+**/playwright/.cache/

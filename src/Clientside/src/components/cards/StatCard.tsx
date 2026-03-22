@@ -35,9 +35,7 @@ export function StatCard({
           <Text>{title}</Text>
           <Metric className="mt-1">{value}</Metric>
         </div>
-        {Icon && (
-          <Icon className="h-5 w-5 text-gray-400 shrink-0" />
-        )}
+        {Icon && <Icon className="h-5 w-5 text-gray-400 shrink-0" />}
       </Flex>
       {(subtitle || trend) && (
         <Flex className="mt-4 space-x-2" justifyContent="start" alignItems="center">

@@ -8,9 +8,7 @@ interface EnvironmentToggleProps {
 }
 
 export function EnvironmentToggle({ value, onChange }: EnvironmentToggleProps) {
-  const currentIndex = ENVIRONMENTS.findIndex(
-    e => e.toLowerCase() === value.toLowerCase()
-  );
+  const currentIndex = ENVIRONMENTS.findIndex((e) => e.toLowerCase() === value.toLowerCase());
 
   return (
     <TabGroup
@@ -18,7 +16,7 @@ export function EnvironmentToggle({ value, onChange }: EnvironmentToggleProps) {
       onIndexChange={(i) => onChange(ENVIRONMENTS[i].toLowerCase())}
     >
       <TabList variant="solid" className="w-fit">
-        {ENVIRONMENTS.map(env => (
+        {ENVIRONMENTS.map((env) => (
           <Tab key={env}>{env}</Tab>
         ))}
       </TabList>

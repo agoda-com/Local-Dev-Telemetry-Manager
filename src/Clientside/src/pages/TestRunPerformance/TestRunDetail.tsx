@@ -7,7 +7,11 @@ import { DashboardGrid } from '../../components/layout/DashboardGrid';
 import { ChartCard } from '../../components/cards/ChartCard';
 import { DataTable } from '../../components/tables/DataTable';
 import { formatMs } from '../../utils/format';
-import { fetchTestRunDetail, type TestRunDetail as TestRunDetailData, type TestCaseItem } from '../../api/client';
+import {
+  fetchTestRunDetail,
+  type TestRunDetail as TestRunDetailData,
+  type TestCaseItem,
+} from '../../api/client';
 
 const STATUS_COLORS: Record<string, string> = {
   passed: 'emerald',
@@ -21,7 +25,7 @@ const testCaseColumns: ColumnDef<TestCaseItem, unknown>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: info => {
+    cell: (info) => {
       const status = (info.getValue() as string) ?? '';
       const color = STATUS_COLORS[status.toLowerCase()] ?? 'gray';
       return <Badge color={color}>{status}</Badge>;
@@ -30,12 +34,12 @@ const testCaseColumns: ColumnDef<TestCaseItem, unknown>[] = [
   {
     accessorKey: 'durationMs',
     header: 'Duration',
-    cell: info => formatMs(info.getValue() as number | null),
+    cell: (info) => formatMs(info.getValue() as number | null),
   },
   {
     accessorKey: 'errorMessage',
     header: 'Error',
-    cell: info => {
+    cell: (info) => {
       const msg = info.getValue() as string | null;
       if (!msg) return null;
       return <Text title={msg}>{msg.length > 80 ? `${msg.slice(0, 80)}…` : msg}</Text>;
@@ -53,15 +57,21 @@ export function TestRunDetail() {
     if (!id) return;
     let cancelled = false;
     fetchTestRunDetail(id)
-      .then(d => { if (!cancelled) setDetail(d); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .then((d) => {
+        if (!cancelled) setDetail(d);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const filteredCases = useMemo(() => {
     if (!detail) return [];
     if (statusFilter === 'all') return detail.testCases;
-    return detail.testCases.filter(tc => tc.status.toLowerCase() === statusFilter);
+    return detail.testCases.filter((tc) => tc.status.toLowerCase() === statusFilter);
   }, [detail, statusFilter]);
 
   const slowestTests = useMemo(() => {
@@ -128,11 +138,17 @@ function MetadataCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StatusFilterBar({ current, onChange }: { current: string; onChange: (v: string) => void }) {
+function StatusFilterBar({
+  current,
+  onChange,
+}: {
+  current: string;
+  onChange: (v: string) => void;
+}) {
   const options = ['all', 'passed', 'failed', 'skipped'];
   return (
     <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-      {options.map(opt => (
+      {options.map((opt) => (
         <button
           key={opt}
           onClick={() => onChange(opt)}

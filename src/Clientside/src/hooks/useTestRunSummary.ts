@@ -24,17 +24,14 @@ export function useTestRunSummary(filters: FilterState) {
     setLoading(true);
     setError(null);
 
-    Promise.all([
-      fetchTestRunSummary(params),
-      fetchTestRuns(params),
-    ])
+    Promise.all([fetchTestRunSummary(params), fetchTestRuns(params)])
       .then(([s, r]) => {
         if (!cancelled) {
           setSummary(s);
           setRuns(r);
         }
       })
-      .catch(e => {
+      .catch((e) => {
         if (!cancelled) {
           setError(e instanceof Error ? e : new Error(String(e)));
         }
@@ -43,7 +40,9 @@ export function useTestRunSummary(filters: FilterState) {
         if (!cancelled) setLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [filterKey, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { summary, runs, loading, error, page, setPage };
