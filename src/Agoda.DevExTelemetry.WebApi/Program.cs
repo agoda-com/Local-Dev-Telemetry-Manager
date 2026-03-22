@@ -101,7 +101,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Agoda.DevExTelemetry");
 });
 
-app.Map("/api/{**catch-all}", () => Results.NotFound());
+app.Map("/api/{**catch-all}", () => Microsoft.AspNetCore.Http.Results.NotFound());
 app.MapFallbackToFile("index.html");
 
 app.Run();
