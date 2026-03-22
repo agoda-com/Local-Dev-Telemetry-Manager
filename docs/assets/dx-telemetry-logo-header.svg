@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220" role="img" aria-label="DX Telemetry Manager logo">
+  <defs>
+    <linearGradient id="accentGrad4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#19C2C9"/>
+      <stop offset="100%" stop-color="#2D7FF9"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(20,30)">
+    <rect x="0" y="0" width="150" height="150" rx="28" fill="#102235"/>
+    <rect x="18" y="18" width="114" height="114" rx="18" fill="#13293F" stroke="rgba(255,255,255,0.08)"/>
+    <path d="M37 90 L56 90 L68 67 L82 110 L95 82 L110 82" fill="none" stroke="url(#accentGrad4)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M110 82 L121 82 L121 49" fill="none" stroke="#E63E8D" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="37" cy="90" r="6" fill="#19C2C9"/>
+    <circle cx="68" cy="67" r="6" fill="#19C2C9"/>
+    <circle cx="82" cy="110" r="6" fill="#2D7FF9"/>
+    <circle cx="95" cy="82" r="6" fill="#19C2C9"/>
+    <circle cx="121" cy="49" r="6" fill="#E63E8D"/>
+  </g>
+
+  <g transform="translate(210,58)">
+    <text x="0" y="38" font-size="40" font-weight="700" fill="#102235" letter-spacing="-0.03em" font-family="Inter, Segoe UI, Arial, sans-serif">Agoda.DevExTelemetry</text>
+    <text x="2" y="82" font-size="24" font-weight="600" fill="#5B6675" letter-spacing="0.02em" font-family="Inter, Segoe UI, Arial, sans-serif">DX Telemetry Manager</text>
+    <rect x="2" y="101" width="102" height="6" rx="3" fill="#19C2C9"/>
+    <rect x="112" y="101" width="44" height="6" rx="3" fill="#E63E8D" opacity="0.75"/>
+  </g>
+</svg>
