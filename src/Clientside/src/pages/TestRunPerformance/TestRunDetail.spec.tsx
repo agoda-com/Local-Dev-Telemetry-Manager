@@ -64,3 +64,11 @@ test('filters test cases by status when clicking filter button', async ({ mount 
   await component.getByRole('button', { name: 'Failed' }).click();
   await expect(component.getByRole('cell', { name: 'TestThree' }).first()).toBeVisible();
 });
+
+test('screenshot: full detail page', async ({ mount }) => {
+  const component = await mount(<TestRunDetail />, {
+    hooksConfig: { routePath: '/test-runs/:id', routeUrl: '/test-runs/run-1' },
+  });
+  await expect(component.getByText('All Test Cases')).toBeVisible();
+  await expect(component).toHaveScreenshot({ maxDiffPixelRatio: 0.01 });
+});

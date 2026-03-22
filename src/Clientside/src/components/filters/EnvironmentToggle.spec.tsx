@@ -14,3 +14,13 @@ test('tabs are clickable', async ({ mount }) => {
   await component.getByText('CI').click();
   await component.getByText('All').click();
 });
+
+test('screenshot: all selected', async ({ mount }) => {
+  const component = await mount(<EnvironmentToggle value="all" onChange={() => {}} />);
+  await expect(component).toHaveScreenshot();
+});
+
+test('screenshot: local selected', async ({ mount }) => {
+  const component = await mount(<EnvironmentToggle value="local" onChange={() => {}} />);
+  await expect(component).toHaveScreenshot();
+});

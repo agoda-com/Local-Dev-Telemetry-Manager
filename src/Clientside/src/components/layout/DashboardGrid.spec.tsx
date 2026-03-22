@@ -39,3 +39,15 @@ test('applies 1-column grid class', async ({ mount }) => {
   );
   await expect(component).toHaveClass(/grid-cols-1/);
 });
+
+test('screenshot: 4-column grid', async ({ mount }) => {
+  const component = await mount(
+    <DashboardGrid columns={4}>
+      <div style={{ padding: 16, background: '#e5e7eb' }}>Card 1</div>
+      <div style={{ padding: 16, background: '#e5e7eb' }}>Card 2</div>
+      <div style={{ padding: 16, background: '#e5e7eb' }}>Card 3</div>
+      <div style={{ padding: 16, background: '#e5e7eb' }}>Card 4</div>
+    </DashboardGrid>,
+  );
+  await expect(component).toHaveScreenshot();
+});

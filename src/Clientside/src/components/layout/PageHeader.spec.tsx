@@ -16,3 +16,13 @@ test('omits subtitle element when not provided', async ({ mount }) => {
   await expect(component.getByRole('heading', { name: 'Title Only' })).toBeVisible();
   await expect(component.locator('p')).toHaveCount(0);
 });
+
+test('screenshot: title only', async ({ mount }) => {
+  const component = await mount(<PageHeader title="Dashboard" />);
+  await expect(component).toHaveScreenshot();
+});
+
+test('screenshot: title with subtitle', async ({ mount }) => {
+  const component = await mount(<PageHeader title="Dashboard" subtitle="Overview of metrics" />);
+  await expect(component).toHaveScreenshot();
+});

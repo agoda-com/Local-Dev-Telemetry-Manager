@@ -32,3 +32,13 @@ test('renders children in main area', async ({ mount }) => {
   );
   await expect(component.getByTestId('page-content')).toBeVisible();
 });
+
+test('screenshot: shell with content', async ({ mount }) => {
+  const component = await mount(
+    <AppShell>
+      <div style={{ padding: 24 }}>Sample page content</div>
+    </AppShell>,
+    { hooksConfig: { enableRouting: true } },
+  );
+  await expect(component).toHaveScreenshot();
+});

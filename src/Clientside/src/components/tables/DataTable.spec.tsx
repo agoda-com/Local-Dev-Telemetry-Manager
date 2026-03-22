@@ -100,3 +100,27 @@ test('column headers are clickable for sorting', async ({ mount }) => {
   await component.getByText('Name').click();
   await component.getByText('Value').click();
 });
+
+test('screenshot: table with data', async ({ mount }) => {
+  const component = await mount(<DataTable columns={columns} data={data} />);
+  await expect(component).toHaveScreenshot();
+});
+
+test('screenshot: table with pagination', async ({ mount }) => {
+  const component = await mount(
+    <DataTable
+      columns={columns}
+      data={data}
+      totalCount={50}
+      page={2}
+      pageSize={20}
+      onPageChange={() => {}}
+    />,
+  );
+  await expect(component).toHaveScreenshot();
+});
+
+test('screenshot: empty table', async ({ mount }) => {
+  const component = await mount(<DataTable columns={columns} data={[]} />);
+  await expect(component).toHaveScreenshot();
+});

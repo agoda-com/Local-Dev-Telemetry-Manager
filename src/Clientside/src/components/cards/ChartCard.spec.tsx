@@ -46,3 +46,12 @@ test('hides View Detail button when no handler', async ({ mount }) => {
   );
   await expect(component.getByText('View Detail')).toHaveCount(0);
 });
+
+test('screenshot: chart card with subtitle and date range', async ({ mount }) => {
+  const component = await mount(
+    <ChartCard title="Duration Over Time" subtitle="Daily average" dateRange="Last 30 days">
+      <div style={{ height: 120, background: '#f3f4f6', borderRadius: 8 }} />
+    </ChartCard>,
+  );
+  await expect(component).toHaveScreenshot();
+});

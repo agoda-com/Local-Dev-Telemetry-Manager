@@ -35,3 +35,15 @@ test('renders without crashing when sparkline data is provided', async ({ mount 
   );
   await expect(component.getByText('Metric')).toBeVisible();
 });
+
+test('screenshot: basic stat card', async ({ mount }) => {
+  const component = await mount(<StatCard title="Total Runs" value={142} />);
+  await expect(component).toHaveScreenshot();
+});
+
+test('screenshot: stat card with trend', async ({ mount }) => {
+  const component = await mount(
+    <StatCard title="Pass Rate" value="95.3%" trend="increase" trendValue="+2.1%" />,
+  );
+  await expect(component).toHaveScreenshot();
+});

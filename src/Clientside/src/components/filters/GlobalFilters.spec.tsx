@@ -47,3 +47,10 @@ test('renders date range select with current value', async ({ mount }) => {
   );
   await expect(component.getByRole('button', { name: 'Last 30 days' })).toBeVisible();
 });
+
+test('screenshot: default filter state', async ({ mount }) => {
+  const component = await mount(
+    <GlobalFilters filters={defaultFilters} options={sampleOptions} onFiltersChange={() => {}} />,
+  );
+  await expect(component).toHaveScreenshot();
+});

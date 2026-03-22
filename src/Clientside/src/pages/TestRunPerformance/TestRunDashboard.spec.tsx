@@ -64,3 +64,11 @@ test('renders filter controls', async ({ mount }) => {
   await expect(component.getByRole('tab', { name: 'Local' })).toBeVisible();
   await expect(component.getByRole('tab', { name: 'CI' })).toBeVisible();
 });
+
+test('screenshot: full dashboard', async ({ mount }) => {
+  const component = await mount(<TestRunDashboard />, {
+    hooksConfig: { enableRouting: true },
+  });
+  await expect(component.getByText('Recent Test Runs')).toBeVisible();
+  await expect(component).toHaveScreenshot({ maxDiffPixelRatio: 0.01 });
+});
