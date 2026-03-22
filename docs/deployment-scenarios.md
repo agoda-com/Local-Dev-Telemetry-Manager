@@ -5,12 +5,40 @@ This document shows common deployment patterns for Agoda.DevExTelemetry and how 
 ## Scenario A: Single-host Docker Compose (small team / PoC)
 
 - API and PostgreSQL run on one host.
-- Clients point directly to host URL or internal DNS.
+- Good for quick validation and small-team internal usage.
 
 ```mermaid
 flowchart LR
   DevMachines["Developer machines<br/>(build/test clients)"] -->|HTTP metrics| API["DevExTelemetry API<br/>Docker container"]
   API --> DB[("PostgreSQL<br/>Docker volume")]
+```
+
+### Example `docker-compose.yml`
+
+```yaml
+services:
+  app:
+    image: agoda/devex-telemetry:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - POSTGRES_CONNECTION_STRING=Host=db;Port=5432;Database=devex_telemetry;Username=devex;Password=devex
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: devex_telemetry
+      POSTGRES_USER: devex
+      POSTGRES_PASSWORD: devex
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
 ```
 
 ### Pros
@@ -23,76 +51,98 @@ flowchart LR
 
 ---
 
-## Scenario B: App Service / Managed host + managed PostgreSQL
+## Scenario B: Kubernetes + Helm (app) with externally managed PostgreSQL
 
-- API runs on managed compute.
-- PostgreSQL runs as managed DB.
-- Clients use either internal DNS (`compilation-metrics`) or `DEVFEEDBACK_URL`.
+- App is deployed to Kubernetes via Helm.
+- PostgreSQL is managed externally (Azure Database for PostgreSQL / RDS / Cloud SQL / internal managed DB).
+- App receives DB connectivity via `POSTGRES_CONNECTION_STRING` in Helm values.
 
 ```mermaid
 flowchart LR
   Clients["Developer machines"] --> DNS["Internal DNS<br/>compilation-metrics"]
-  DNS --> API["DevExTelemetry API<br/>Managed host"]
-  API --> DB[("Managed PostgreSQL")]
+  DNS --> Ingress["K8s Ingress / Internal LB"]
+  Ingress --> App["DevExTelemetry API<br/>Kubernetes pods"]
+  App --> DB[("Managed PostgreSQL<br/>outside cluster")]
+```
+
+### Minimal Helm chart (app layer)
+
+#### `Chart.yaml`
+
+```yaml
+apiVersion: v2
+name: devex-telemetry
+version: 0.1.0
+appVersion: "latest"
+```
+
+#### `values.yaml`
+
+```yaml
+image:
+  repository: agoda/devex-telemetry
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  host: devex-telemetry.internal.example.com
+
+env:
+  POSTGRES_CONNECTION_STRING: "Host=managed-pg.internal;Port=5432;Database=devex_telemetry;Username=devex;Password=***"
+```
+
+#### `templates/deployment.yaml` (env excerpt)
+
+```yaml
+env:
+  - name: POSTGRES_CONNECTION_STRING
+    value: {{ .Values.env.POSTGRES_CONNECTION_STRING | quote }}
 ```
 
 ### Pros
-- Better uptime and managed operations
-- Easier backups/patching
+- Better scalability and operability
+- Clean separation between app runtime and managed database
 
 ### Cons
-- Needs DNS + infra coordination
+- Requires Kubernetes + Helm + ingress setup
+- Requires platform/DNS coordination
 
 ---
 
-## Scenario C: Mixed rollout (transition state)
-
-- Some teams use DNS default.
-- Some teams use workstation-level `DEVFEEDBACK_URL` override.
-
-```mermaid
-flowchart LR
-  A["Team A clients<br/>default URL"] --> DNS["compilation-metrics DNS"]
-  B["Team B clients<br/>DEVFEEDBACK_URL set"] --> API
-  DNS --> API["DevExTelemetry API"]
-  API --> DB[("PostgreSQL")]
-```
-
-### Pros
-- Incremental migration
-- Lower rollout friction
-
-### Cons
-- Multiple connection patterns to support temporarily
-
----
-
-## Client Routing Rules
+## Pointing Clients at Your Deployment
 
 Compilation/test clients route as follows:
 
 1. If `DEVFEEDBACK_URL` is set, use it.
 2. Otherwise, use default `http://compilation-metrics`.
 
-Recommended enterprise pattern:
-- Keep client defaults untouched.
-- Control destination centrally with DNS.
+### Preferred enterprise pattern: DNS default host
 
----
+Most corporate networks already use internal DNS for service discovery (for internal APIs, proxies, package mirrors, etc.).
 
-## Example environment variables
+Because clients default to `http://compilation-metrics`, your network/workstation team can create an internal DNS record for `compilation-metrics` pointing to your telemetry API endpoint (ingress/internal LB/service host). Once this is in place:
 
-### API host
+- no per-developer setup is required,
+- telemetry works out-of-the-box,
+- rollout and changes stay centralized with infra/network teams.
 
-```bash
-export POSTGRES_CONNECTION_STRING='Host=postgres;Port=5432;Database=devex_telemetry;Username=devex;Password=devex'
-```
+If you don’t control DNS yet, use `DEVFEEDBACK_URL` as a temporary bridge.
 
-### Client machine override (optional)
+### Workstation override (optional)
 
 ```bash
 export DEVFEEDBACK_URL='https://your-devex-telemetry.example.com'
 ```
+
+Your IT support team can also push this centrally with endpoint/device management tooling if needed.
 
 ---
 
@@ -101,3 +151,4 @@ export DEVFEEDBACK_URL='https://your-devex-telemetry.example.com'
 - Keep the API internal (VPN/private network/internal ingress).
 - Do not expose PostgreSQL directly to the public internet.
 - Use TLS for cross-network telemetry traffic.
+- Prefer secrets management (K8s secrets / vault / parameter store) over plaintext credentials in Helm values.
