@@ -13,21 +13,22 @@ namespace Agoda.DevExTelemetry.WebApi.Controllers;
 [ApiController]
 public class ViteController : ControllerBase
 {
-    private readonly IIngestService _ingestService;
+    private readonly IBackgroundTaskQueue<IngestBuildMetricWorkItem> _queue;
     private readonly IEnvironmentDetector _environmentDetector;
     private readonly IBuildCategoryClassifier _classifier;
 
     public ViteController(
-        IIngestService ingestService,
+        IBackgroundTaskQueue<IngestBuildMetricWorkItem> queue,
         IEnvironmentDetector environmentDetector,
         IBuildCategoryClassifier classifier)
     {
-        _ingestService = ingestService;
+        _queue = queue;
         _environmentDetector = environmentDetector;
         _classifier = classifier;
     }
 
     [HttpPost("vite")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> Ingest([FromBody] VitePayload payload)
     {
         var metricType = payload.Type ?? "vite";
@@ -88,9 +89,13 @@ public class ViteController : ControllerBase
             ExtraData = JsonSerializer.Serialize(extraData)
         };
 
-        await _ingestService.IngestBuildMetricAsync(metric);
-        await _ingestService.StoreRawPayloadAsync("/vite", "application/json",
-            JsonSerializer.Serialize(payload));
+        await _queue.QueueBackgroundWorkItemAsync(_ => new IngestBuildMetricWorkItem
+        {
+            BuildMetric = metric,
+            RawPayloadJson = JsonSerializer.Serialize(payload),
+            RawPayloadEndpoint = "/vite",
+            RawPayloadContentType = "application/json"
+        });
 
         return Ok();
     }

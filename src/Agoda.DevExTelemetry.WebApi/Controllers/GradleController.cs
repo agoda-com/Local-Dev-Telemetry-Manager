@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Entities;
 using Agoda.DevExTelemetry.Core.Models.Ingest;
 using Agoda.DevExTelemetry.Core.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agoda.DevExTelemetry.WebApi.Controllers;
@@ -82,9 +81,9 @@ public class GradleController : ControllerBase
         await _queue.QueueBackgroundWorkItemAsync(_ => new IngestBuildMetricWorkItem
         {
             BuildMetric = metric,
+            RawPayloadJson = JsonSerializer.Serialize(payload),
             RawPayloadEndpoint = "/gradletalaiot",
-            RawPayloadContentType = "application/json",
-            RawPayloadJson = JsonSerializer.Serialize(payload)
+            RawPayloadContentType = "application/json"
         });
 
         return Ok();

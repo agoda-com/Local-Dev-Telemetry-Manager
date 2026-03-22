@@ -86,16 +86,16 @@ public class TestDataController : ControllerBase
             SourceEndpoint = "/testdata/junit"
         };
 
+        var testSuiteCounts = allTestCases
+            .GroupBy(tc => tc.ClassName ?? "Unknown")
+            .Select(g => new { name = g.Key, numberOfTests = g.Count() })
+            .ToList();
+
         await _queue.QueueBackgroundWorkItemAsync(_ => new IngestTestRunWorkItem
         {
             TestRun = testRun,
             TestCases = allTestCases
         });
-
-        var testSuiteCounts = allTestCases
-            .GroupBy(tc => tc.ClassName ?? "Unknown")
-            .Select(g => new { name = g.Key, numberOfTests = g.Count() })
-            .ToList();
 
         return Ok(new
         {

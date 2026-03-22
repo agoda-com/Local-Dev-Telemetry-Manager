@@ -22,17 +22,16 @@ public class BuildMetricIngestQueue : QueuedHostedService<IngestBuildMetricWorkI
     }
 
     protected override async Task ProcessWorkItem(
-        Func<CancellationToken, IngestBuildMetricWorkItem> message,
-        CancellationToken stoppingToken)
+        Func<CancellationToken, IngestBuildMetricWorkItem> message, CancellationToken stoppingToken)
     {
-        var workItem = message.Invoke(stoppingToken);
+        var workItem = message(stoppingToken);
 
         using var scope = _serviceProvider.CreateScope();
         var ingestService = scope.ServiceProvider.GetRequiredService<IIngestService>();
 
         await ingestService.IngestBuildMetricAsync(workItem.BuildMetric);
 
-        if (workItem.RawPayloadEndpoint != null && workItem.RawPayloadJson != null)
+        if (workItem.RawPayloadJson != null && workItem.RawPayloadEndpoint != null)
         {
             await ingestService.StoreRawPayloadAsync(
                 workItem.RawPayloadEndpoint,

@@ -9,42 +9,47 @@ namespace Agoda.DevExTelemetry.WebApi.Services;
 
 public abstract class QueuedHostedService<T> : BackgroundService
 {
-    private IBackgroundTaskQueue<T> TaskQueue { get; }
-    protected ILogger Logger { get; }
+    private readonly IBackgroundTaskQueue<T> _taskQueue;
+    private readonly ILogger _logger;
 
     protected QueuedHostedService(IBackgroundTaskQueue<T> taskQueue, ILogger logger)
     {
-        TaskQueue = taskQueue;
-        Logger = logger;
+        _taskQueue = taskQueue;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Logger.LogInformation("Queued Hosted Service for {ServiceName} is running", typeof(T).Name);
+        _logger.LogInformation("Queued Hosted Service for {ServiceName} is running.", typeof(T).Name);
         await BackgroundProcessing(stoppingToken);
     }
 
-    protected abstract Task ProcessWorkItem(Func<CancellationToken, T> message, CancellationToken stoppingToken);
+    protected abstract Task ProcessWorkItem(
+        Func<CancellationToken, T> message, CancellationToken stoppingToken);
 
     private async Task BackgroundProcessing(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            var workItem = await TaskQueue.DequeueAsync(stoppingToken);
+            var workItem = await _taskQueue.DequeueAsync(stoppingToken);
             try
             {
                 await ProcessWorkItem(workItem, stoppingToken);
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error occurred executing {WorkItem}", nameof(workItem));
+                _logger.LogError(ex, "Error occurred executing {WorkItem}", nameof(workItem));
+            }
+            finally
+            {
+                _taskQueue.NotifyItemProcessed();
             }
         }
     }
 
     public override async Task StopAsync(CancellationToken stoppingToken)
     {
-        Logger.LogInformation("Queued Hosted Service for {ServiceName} is stopping", typeof(T).Name);
+        _logger.LogInformation("Queued Hosted Service for {ServiceName} is stopping.", typeof(T).Name);
         await base.StopAsync(stoppingToken);
     }
 }

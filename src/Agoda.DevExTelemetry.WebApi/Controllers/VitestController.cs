@@ -15,21 +15,22 @@ public class VitestController : ControllerBase
 {
     private const int MaxErrorMessageLength = 4096;
 
-    private readonly IIngestService _ingestService;
+    private readonly IBackgroundTaskQueue<IngestTestRunWorkItem> _queue;
     private readonly IEnvironmentDetector _environmentDetector;
     private readonly IStatusNormalizer _statusNormalizer;
 
     public VitestController(
-        IIngestService ingestService,
+        IBackgroundTaskQueue<IngestTestRunWorkItem> queue,
         IEnvironmentDetector environmentDetector,
         IStatusNormalizer statusNormalizer)
     {
-        _ingestService = ingestService;
+        _queue = queue;
         _environmentDetector = environmentDetector;
         _statusNormalizer = statusNormalizer;
     }
 
     [HttpPost("vitest")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> Ingest([FromBody] VitestPayload payload)
     {
         var platformStr = ((PlatformID)payload.Platform).ToString();
@@ -94,9 +95,14 @@ public class VitestController : ControllerBase
             ExtraData = filesExtraData
         };
 
-        await _ingestService.IngestTestRunAsync(testRun, testCases);
-        await _ingestService.StoreRawPayloadAsync("/vitest", "application/json",
-            JsonSerializer.Serialize(payload));
+        await _queue.QueueBackgroundWorkItemAsync(_ => new IngestTestRunWorkItem
+        {
+            TestRun = testRun,
+            TestCases = testCases,
+            RawPayloadJson = JsonSerializer.Serialize(payload),
+            RawPayloadEndpoint = "/vitest",
+            RawPayloadContentType = "application/json"
+        });
 
         return Ok();
     }

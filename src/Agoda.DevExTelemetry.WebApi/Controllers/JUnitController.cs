@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Entities;
 using Agoda.DevExTelemetry.Core.Models.Ingest;
 using Agoda.DevExTelemetry.Core.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agoda.DevExTelemetry.WebApi.Controllers;
@@ -99,9 +98,9 @@ public class JUnitController : ControllerBase
         {
             TestRun = testRun,
             TestCases = testCases,
+            RawPayloadJson = JsonSerializer.Serialize(payload),
             RawPayloadEndpoint = "/junit",
-            RawPayloadContentType = "application/json",
-            RawPayloadJson = JsonSerializer.Serialize(payload)
+            RawPayloadContentType = "application/json"
         });
 
         return Ok();

@@ -22,17 +22,16 @@ public class TestRunIngestQueue : QueuedHostedService<IngestTestRunWorkItem>
     }
 
     protected override async Task ProcessWorkItem(
-        Func<CancellationToken, IngestTestRunWorkItem> message,
-        CancellationToken stoppingToken)
+        Func<CancellationToken, IngestTestRunWorkItem> message, CancellationToken stoppingToken)
     {
-        var workItem = message.Invoke(stoppingToken);
+        var workItem = message(stoppingToken);
 
         using var scope = _serviceProvider.CreateScope();
         var ingestService = scope.ServiceProvider.GetRequiredService<IIngestService>();
 
         await ingestService.IngestTestRunAsync(workItem.TestRun, workItem.TestCases);
 
-        if (workItem.RawPayloadEndpoint != null && workItem.RawPayloadJson != null)
+        if (workItem.RawPayloadJson != null && workItem.RawPayloadEndpoint != null)
         {
             await ingestService.StoreRawPayloadAsync(
                 workItem.RawPayloadEndpoint,

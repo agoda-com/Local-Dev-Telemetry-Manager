@@ -32,6 +32,7 @@ public class ScalaTestIngestTests
         var response = await TestFixtures.PostGzippedJsonAsync(_client, "/scala/scalatest", payload);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var run = await db.TestRuns.FirstOrDefaultAsync();
@@ -43,6 +44,7 @@ public class ScalaTestIngestTests
     {
         var payload = TestFixtures.CreateScalaTestPayload();
         await TestFixtures.PostJsonAsync(_client, "/scala/scalatest", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var run = await db.TestRuns.FirstOrDefaultAsync();
@@ -55,6 +57,7 @@ public class ScalaTestIngestTests
     {
         var payload = TestFixtures.CreateScalaTestPayload(testCaseCount: 2);
         await TestFixtures.PostJsonAsync(_client, "/scala/scalatest", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var run = await db.TestRuns.FirstOrDefaultAsync();
