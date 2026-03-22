@@ -2,17 +2,17 @@
 
 A full-stack developer experience telemetry dashboard that collects, stores, and visualizes build and test metrics from development tools.
 
-This is an internal tool designed to be deployed within your organization's infrastructure. It receives telemetry from build plugins and test runners across your engineering teams, providing visibility into compile times, test pass rates, hot reload performance, and other developer productivity signals. It is not intended to be exposed to the public internet.
+This is an internal tool designed to be deployed within your organization's infrastructure. It receives telemetry from build plugins and test runners across your engineering teams, providing visibility into compile times, test pass rates, hot reload performance, and other developer productivity signals. It is **not** intended to be exposed to the public internet.
 
 ## Architecture
 
-- **Backend:** .NET 10, ASP.NET Core (Kestrel), EF Core with SQLite
+- **Backend:** .NET 10, ASP.NET Core (Kestrel), EF Core with SQLite or PostgreSQL
 - **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 3, Tremor, Recharts
-- **CI/CD:** GitHub Actions, Azure App Service (Linux)
+- **Container:** Docker image available at `agoda/devex-telemetry`
 
 ## Project Structure
 
-```
+```text
 src/
 ├── Agoda.DevExTelemetry.WebApi/        # ASP.NET Core API (controllers, Program.cs)
 ├── Agoda.DevExTelemetry.Core/          # Domain layer (entities, DTOs, services, DbContext)
@@ -62,25 +62,62 @@ These are the client libraries that instrument developer tooling and send teleme
 - **API Build Performance** — compile, startup, and first response times
 - **Clientside Build Performance** — hot reload vs full build metrics
 
-## Client Configuration
+## PostgreSQL Support
 
-The telemetry clients (devfeedback NuGet packages, webpack/vite plugins, test reporter plugins) need to know where to send data. There are two ways to point them at your deployment:
-
-### Option 1: Environment Variable Override
-
-Set the `DEVFEEDBACK_URL` environment variable on developer machines to your server's URL:
+The API supports PostgreSQL when `POSTGRES_CONNECTION_STRING` is provided.
 
 ```bash
-export DEVFEEDBACK_URL=https://your-devex-telemetry.azurewebsites.net
+export POSTGRES_CONNECTION_STRING='Host=localhost;Port=5432;Database=devex_telemetry;Username=devex;Password=devex'
 ```
 
-This overrides the default URL in all compilation metrics clients. You can set this in shell profiles, dotfiles, or machine-level environment variables.
+Notes:
+- If `POSTGRES_CONNECTION_STRING` is not set, the app uses SQLite.
+- Current PostgreSQL initialization uses `EnsureCreated()` as an MVP path.
+- For long-term schema evolution, move to dedicated PostgreSQL migrations and `db.Database.Migrate()`.
 
-### Option 2: Internal DNS
+## Docker Usage
 
-If you control your organization's DNS, you can create a DNS record that resolves the default hostname used by the compilation metrics clients to your deployment's IP. This way clients work without any local configuration — traffic is routed transparently via your internal DNS server.
+### Run from Docker Hub image
 
-This approach is preferable for large teams since it requires zero setup on individual developer machines.
+```bash
+docker run --rm -p 8080:8080 \
+  -e POSTGRES_CONNECTION_STRING='Host=host.docker.internal;Port=5432;Database=devex_telemetry;Username=devex;Password=devex' \
+  agoda/devex-telemetry:latest
+```
+
+### Run with included docker-compose (API + PostgreSQL)
+
+```bash
+docker compose up -d
+```
+
+This starts:
+- API on `http://localhost:8080`
+- PostgreSQL on `localhost:5432`
+
+## Pointing Clients at Your Deployment
+
+Two options, depending on how much per-machine configuration you want.
+
+### Option 1 (preferred for larger teams): Internal DNS
+
+The compilation clients default to `http://compilation-metrics`.
+
+Create an internal DNS record so `compilation-metrics` resolves to wherever you host this API. This gives zero per-machine setup: engineers don’t configure anything, telemetry just flows.
+
+### Option 2: Environment variable override per machine
+
+Set `DEVFEEDBACK_URL` on workstations:
+
+```bash
+export DEVFEEDBACK_URL=https://your-devex-telemetry.example.com
+```
+
+This is useful when DNS changes aren’t available yet. Your IT support team can roll this out centrally via endpoint management.
+
+## Deployment Scenarios and Diagrams
+
+See [docs/deployment-scenarios.md](docs/deployment-scenarios.md) for concrete deployment topologies, client routing examples, and markdown diagrams.
 
 ## Development
 
@@ -117,9 +154,7 @@ cd src
 dotnet test
 ```
 
-83 tests total (21 unit + 62 integration).
-
-## Deployment
+## CI/CD
 
 Pushes to `main` trigger automatic deployment to Azure App Service via GitHub Actions.
 
