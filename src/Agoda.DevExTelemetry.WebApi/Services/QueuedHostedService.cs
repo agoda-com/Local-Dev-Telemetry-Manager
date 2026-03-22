@@ -1,0 +1,54 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Agoda.DevExTelemetry.Core.Services;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace Agoda.DevExTelemetry.WebApi.Services;
+
+public abstract class QueuedHostedService<T> : BackgroundService
+{
+    private readonly IBackgroundTaskQueue<T> _taskQueue;
+    private readonly ILogger _logger;
+
+    protected QueuedHostedService(IBackgroundTaskQueue<T> taskQueue, ILogger logger)
+    {
+        _taskQueue = taskQueue;
+        _logger = logger;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Queued Hosted Service for {ServiceName} is running.", typeof(T).Name);
+        await BackgroundProcessing(stoppingToken);
+    }
+
+    protected abstract Task ProcessWorkItem(T workItem, CancellationToken stoppingToken);
+
+    private async Task BackgroundProcessing(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var workItem = await _taskQueue.DequeueAsync(stoppingToken);
+            try
+            {
+                await ProcessWorkItem(workItem, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred executing {WorkItem}", nameof(workItem));
+            }
+            finally
+            {
+                _taskQueue.NotifyItemProcessed();
+            }
+        }
+    }
+
+    public override async Task StopAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Queued Hosted Service for {ServiceName} is stopping.", typeof(T).Name);
+        await base.StopAsync(stoppingToken);
+    }
+}

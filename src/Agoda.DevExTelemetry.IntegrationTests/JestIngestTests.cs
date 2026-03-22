@@ -32,6 +32,7 @@ public class JestIngestTests
         var response = await TestFixtures.PostJsonAsync(_client, "/jest", payload);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var cases = await db.TestCases.ToListAsync();
@@ -43,6 +44,7 @@ public class JestIngestTests
     {
         var payload = TestFixtures.CreateJestPayload(suiteCount: 1, testPerSuite: 1);
         await TestFixtures.PostJsonAsync(_client, "/jest", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var testCase = await db.TestCases.FirstOrDefaultAsync();
@@ -55,6 +57,7 @@ public class JestIngestTests
     {
         var payload = TestFixtures.CreateJestPayload(suiteCount: 1, testPerSuite: 1);
         await TestFixtures.PostJsonAsync(_client, "/jest", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var testCase = await db.TestCases.FirstOrDefaultAsync();

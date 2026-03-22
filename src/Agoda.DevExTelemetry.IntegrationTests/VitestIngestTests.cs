@@ -32,6 +32,7 @@ public class VitestIngestTests
         var response = await TestFixtures.PostJsonAsync(_client, "/vitest", payload);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var cases = await db.TestCases.ToListAsync();
@@ -43,6 +44,7 @@ public class VitestIngestTests
     {
         var payload = TestFixtures.CreateVitestPayload();
         await TestFixtures.PostJsonAsync(_client, "/vitest", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var run = await db.TestRuns.FirstOrDefaultAsync();

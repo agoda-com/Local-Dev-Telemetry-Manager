@@ -32,6 +32,7 @@ public class JUnitIngestTests
         var response = await TestFixtures.PostJsonAsync(_client, "/junit", payload);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var runs = await db.TestRuns.ToListAsync();
@@ -46,6 +47,7 @@ public class JUnitIngestTests
     {
         var payload = TestFixtures.CreateJUnitPayload(testCaseCount: 1);
         await TestFixtures.PostJsonAsync(_client, "/junit", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var testCase = await db.TestCases.FirstOrDefaultAsync();

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Entities;
@@ -15,21 +14,22 @@ public class ScalaController : ControllerBase
 {
     private const int MaxErrorMessageLength = 4096;
 
-    private readonly IIngestService _ingestService;
+    private readonly IBackgroundTaskQueue<IngestTestRunWorkItem> _queue;
     private readonly IEnvironmentDetector _environmentDetector;
     private readonly IStatusNormalizer _statusNormalizer;
 
     public ScalaController(
-        IIngestService ingestService,
+        IBackgroundTaskQueue<IngestTestRunWorkItem> queue,
         IEnvironmentDetector environmentDetector,
         IStatusNormalizer statusNormalizer)
     {
-        _ingestService = ingestService;
+        _queue = queue;
         _environmentDetector = environmentDetector;
         _statusNormalizer = statusNormalizer;
     }
 
     [HttpPost("scala/scalatest")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> Ingest([FromBody] ScalaTestPayload payload)
     {
         var platformStr = ((PlatformID)payload.Platform).ToString();
@@ -84,9 +84,14 @@ public class ScalaController : ControllerBase
             SourceEndpoint = "/scala/scalatest"
         };
 
-        await _ingestService.IngestTestRunAsync(testRun, testCases);
-        await _ingestService.StoreRawPayloadAsync("/scala/scalatest", "application/json",
-            JsonSerializer.Serialize(payload));
+        await _queue.QueueBackgroundWorkItemAsync(new IngestTestRunWorkItem
+        {
+            TestRun = testRun,
+            TestCases = testCases,
+            RawPayloadJson = JsonSerializer.Serialize(payload),
+            RawPayloadEndpoint = "/scala/scalatest",
+            RawPayloadContentType = "application/json"
+        });
 
         return Ok();
     }

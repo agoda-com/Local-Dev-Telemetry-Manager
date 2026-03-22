@@ -32,6 +32,7 @@ public class GradleIngestTests
         var response = await TestFixtures.PostJsonAsync(_client, "/gradletalaiot", payload);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();
@@ -44,6 +45,7 @@ public class GradleIngestTests
     {
         var payload = TestFixtures.CreateGradlePayload(cpuCount: "8");
         await TestFixtures.PostJsonAsync(_client, "/gradletalaiot", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();
@@ -56,6 +58,7 @@ public class GradleIngestTests
     {
         var payload = TestFixtures.CreateGradlePayload();
         await TestFixtures.PostJsonAsync(_client, "/gradletalaiot", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();
@@ -69,6 +72,7 @@ public class GradleIngestTests
     {
         var payload = TestFixtures.CreateGradlePayload();
         await TestFixtures.PostJsonAsync(_client, "/gradletalaiot", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();

@@ -15,21 +15,22 @@ public class JestController : ControllerBase
 {
     private const int MaxErrorMessageLength = 4096;
 
-    private readonly IIngestService _ingestService;
+    private readonly IBackgroundTaskQueue<IngestTestRunWorkItem> _queue;
     private readonly IEnvironmentDetector _environmentDetector;
     private readonly IStatusNormalizer _statusNormalizer;
 
     public JestController(
-        IIngestService ingestService,
+        IBackgroundTaskQueue<IngestTestRunWorkItem> queue,
         IEnvironmentDetector environmentDetector,
         IStatusNormalizer statusNormalizer)
     {
-        _ingestService = ingestService;
+        _queue = queue;
         _environmentDetector = environmentDetector;
         _statusNormalizer = statusNormalizer;
     }
 
     [HttpPost("jest")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> Ingest([FromBody] JestPayload payload)
     {
         var platformStr = ((PlatformID)payload.Platform).ToString();
@@ -115,9 +116,14 @@ public class JestController : ControllerBase
             ExtraData = extraData != null ? JsonSerializer.Serialize(extraData) : null
         };
 
-        await _ingestService.IngestTestRunAsync(testRun, testCases);
-        await _ingestService.StoreRawPayloadAsync("/jest", "application/json",
-            JsonSerializer.Serialize(payload));
+        await _queue.QueueBackgroundWorkItemAsync(new IngestTestRunWorkItem
+        {
+            TestRun = testRun,
+            TestCases = testCases,
+            RawPayloadJson = JsonSerializer.Serialize(payload),
+            RawPayloadEndpoint = "/jest",
+            RawPayloadContentType = "application/json"
+        });
 
         return Ok();
     }

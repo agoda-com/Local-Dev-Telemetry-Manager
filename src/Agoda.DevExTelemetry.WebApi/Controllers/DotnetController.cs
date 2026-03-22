@@ -16,24 +16,28 @@ public class DotnetController : ControllerBase
 {
     private const int MaxErrorMessageLength = 4096;
 
-    private readonly IIngestService _ingestService;
+    private readonly IBackgroundTaskQueue<IngestBuildMetricWorkItem> _buildMetricQueue;
+    private readonly IBackgroundTaskQueue<IngestTestRunWorkItem> _testRunQueue;
     private readonly IEnvironmentDetector _environmentDetector;
     private readonly IBuildCategoryClassifier _classifier;
     private readonly IStatusNormalizer _statusNormalizer;
 
     public DotnetController(
-        IIngestService ingestService,
+        IBackgroundTaskQueue<IngestBuildMetricWorkItem> buildMetricQueue,
+        IBackgroundTaskQueue<IngestTestRunWorkItem> testRunQueue,
         IEnvironmentDetector environmentDetector,
         IBuildCategoryClassifier classifier,
         IStatusNormalizer statusNormalizer)
     {
-        _ingestService = ingestService;
+        _buildMetricQueue = buildMetricQueue;
+        _testRunQueue = testRunQueue;
         _environmentDetector = environmentDetector;
         _classifier = classifier;
         _statusNormalizer = statusNormalizer;
     }
 
     [HttpPost("dotnet")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> IngestBuild([FromBody] DotnetMsBuildPayload payload)
     {
         var metricType = payload.Type ?? ".Net";
@@ -66,14 +70,21 @@ public class DotnetController : ControllerBase
             SourceEndpoint = "/dotnet"
         };
 
-        await _ingestService.IngestBuildMetricAsync(metric);
-        await _ingestService.StoreRawPayloadAsync("/dotnet", "application/json",
-            JsonSerializer.Serialize(payload));
+        var rawJson = JsonSerializer.Serialize(payload);
+
+        await _buildMetricQueue.QueueBackgroundWorkItemAsync(new IngestBuildMetricWorkItem
+        {
+            BuildMetric = metric,
+            RawPayloadJson = rawJson,
+            RawPayloadEndpoint = "/dotnet",
+            RawPayloadContentType = "application/json"
+        });
 
         return Ok();
     }
 
     [HttpPost("dotnet/nunit")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> IngestNUnit([FromBody] NUnitPayload payload)
     {
         var platformStr = ((PlatformID)payload.Platform).ToString();
@@ -137,9 +148,16 @@ public class DotnetController : ControllerBase
             SourceEndpoint = "/dotnet/nunit"
         };
 
-        await _ingestService.IngestTestRunAsync(testRun, testCases);
-        await _ingestService.StoreRawPayloadAsync("/dotnet/nunit", "application/json",
-            JsonSerializer.Serialize(payload));
+        var rawJson = JsonSerializer.Serialize(payload);
+
+        await _testRunQueue.QueueBackgroundWorkItemAsync(new IngestTestRunWorkItem
+        {
+            TestRun = testRun,
+            TestCases = testCases,
+            RawPayloadJson = rawJson,
+            RawPayloadEndpoint = "/dotnet/nunit",
+            RawPayloadContentType = "application/json"
+        });
 
         return Ok();
     }
