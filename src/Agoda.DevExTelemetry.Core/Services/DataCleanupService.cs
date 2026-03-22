@@ -1,6 +1,5 @@
 using Agoda.DevExTelemetry.Core.Data;
 using Agoda.IoC.Core;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -49,39 +48,18 @@ public class DataCleanupService : BackgroundService
         try
         {
             using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<TelemetryDbContext>();
+            var repository = scope.ServiceProvider.GetRequiredService<ITelemetryRepository>();
 
             var cutoff = DateTime.UtcNow.AddDays(-_retentionDays);
+            await repository.DeleteOldDataAsync(cutoff);
 
-            var testCasesDeleted = await db.TestCases
-                .Where(tc => db.TestRuns
-                    .Where(tr => tr.ReceivedAt < cutoff)
-                    .Select(tr => tr.Id)
-                    .Contains(tc.TestRunId))
-                .ExecuteDeleteAsync();
-
-            var testRunsDeleted = await db.TestRuns
-                .Where(tr => tr.ReceivedAt < cutoff)
-                .ExecuteDeleteAsync();
-
-            var buildMetricsDeleted = await db.BuildMetrics
-                .Where(bm => bm.ReceivedAt < cutoff)
-                .ExecuteDeleteAsync();
-
-            var rawPayloadsDeleted = await db.RawPayloads
-                .Where(rp => rp.ReceivedAt < cutoff)
-                .ExecuteDeleteAsync();
-
-            _logger.LogInformation(
-                "Cleanup complete: TestCases={TestCases}, TestRuns={TestRuns}, BuildMetrics={BuildMetrics}, RawPayloads={RawPayloads}",
-                testCasesDeleted, testRunsDeleted, buildMetricsDeleted, rawPayloadsDeleted);
+            _logger.LogInformation("Data cleanup complete");
 
             if (DateTime.UtcNow - _lastVacuumDate > TimeSpan.FromDays(_vacuumIntervalDays))
             {
-                await db.Database.ExecuteSqlRawAsync("PRAGMA optimize");
-                await db.Database.ExecuteSqlRawAsync("VACUUM");
+                await repository.RunMaintenanceAsync();
                 _lastVacuumDate = DateTime.UtcNow;
-                _logger.LogInformation("Database VACUUM completed");
+                _logger.LogInformation("Database maintenance completed");
             }
         }
         catch (Exception ex)

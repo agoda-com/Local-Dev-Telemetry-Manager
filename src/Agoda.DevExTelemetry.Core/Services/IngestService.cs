@@ -1,7 +1,6 @@
 using Agoda.DevExTelemetry.Core.Data;
 using Agoda.DevExTelemetry.Core.Models.Entities;
 using Agoda.IoC.Core;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -10,13 +9,13 @@ namespace Agoda.DevExTelemetry.Core.Services;
 [RegisterPerRequest]
 public class IngestService : IIngestService
 {
-    private readonly TelemetryDbContext _db;
+    private readonly ITelemetryRepository _repository;
     private readonly IConfiguration _configuration;
     private readonly ILogger<IngestService> _logger;
 
-    public IngestService(TelemetryDbContext db, IConfiguration configuration, ILogger<IngestService> logger)
+    public IngestService(ITelemetryRepository repository, IConfiguration configuration, ILogger<IngestService> logger)
     {
-        _db = db;
+        _repository = repository;
         _configuration = configuration;
         _logger = logger;
     }
@@ -25,29 +24,26 @@ public class IngestService : IIngestService
     {
         metric.ReceivedAt = DateTime.UtcNow;
 
-        if (await _db.BuildMetrics.AnyAsync(bm => bm.Id == metric.Id))
+        if (await _repository.BuildMetricExistsAsync(metric.Id))
         {
             _logger.LogInformation("Ignoring duplicate BuildMetric with Id={Id}", metric.Id);
             return;
         }
 
-        _db.BuildMetrics.Add(metric);
-        await _db.SaveChangesAsync();
+        await _repository.AddBuildMetricAsync(metric);
     }
 
     public async Task IngestTestRunAsync(TestRun run, IEnumerable<TestCase> testCases)
     {
         run.ReceivedAt = DateTime.UtcNow;
 
-        if (await _db.TestRuns.AnyAsync(tr => tr.Id == run.Id))
+        if (await _repository.TestRunExistsAsync(run.Id))
         {
             _logger.LogInformation("Ignoring duplicate TestRun with Id={Id}", run.Id);
             return;
         }
 
-        _db.TestRuns.Add(run);
-        await _db.TestCases.AddRangeAsync(testCases);
-        await _db.SaveChangesAsync();
+        await _repository.AddTestRunAsync(run, testCases);
     }
 
     public async Task StoreRawPayloadAsync(string endpoint, string contentType, string json)
@@ -64,7 +60,6 @@ public class IngestService : IIngestService
             PayloadJson = json
         };
 
-        _db.RawPayloads.Add(rawPayload);
-        await _db.SaveChangesAsync();
+        await _repository.AddRawPayloadAsync(rawPayload);
     }
 }

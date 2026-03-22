@@ -31,9 +31,22 @@ builder.Host.UseSerilog((ctx, lc) => lc
     .Enrich.WithProperty("EnvironmentName", env)
     .Enrich.FromLogContext());
 
-builder.Services.AddDbContext<TelemetryDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
-                      ?? "Data Source=devex-telemetry.db"));
+var pgConnectionString = System.Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING");
+var usePostgres = !string.IsNullOrEmpty(pgConnectionString);
+
+if (usePostgres)
+{
+    builder.Services.AddDbContext<TelemetryDbContext>(options =>
+        options.UseNpgsql(pgConnectionString));
+    builder.Services.AddScoped<ITelemetryRepository, PostgresTelemetryRepository>();
+}
+else
+{
+    builder.Services.AddDbContext<TelemetryDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
+                          ?? "Data Source=devex-telemetry.db"));
+    builder.Services.AddScoped<ITelemetryRepository, SqliteTelemetryRepository>();
+}
 
 builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
 {
@@ -78,7 +91,18 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TelemetryDbContext>();
-    db.Database.Migrate();
+    if (db.Database.ProviderName?.Contains("Sqlite") == true)
+    {
+        db.Database.Migrate();
+    }
+    else
+    {
+        // EnsureCreated() is used for PostgreSQL as an MVP approach since the schema is
+        // simple and there are no existing PostgreSQL databases to migrate. Once PostgreSQL
+        // becomes a first-class long-term provider, this should be replaced with a dedicated
+        // set of PostgreSQL migrations (separate migration assembly) and db.Database.Migrate().
+        db.Database.EnsureCreated();
+    }
 }
 
 if (app.Environment.IsDevelopment())
