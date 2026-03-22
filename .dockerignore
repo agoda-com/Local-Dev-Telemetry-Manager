@@ -1,0 +1,11 @@
+.git
+.github
+.cursor
+.vs
+**/bin
+**/obj
+**/node_modules
+src/Clientside/dist
+src/Clientside/playwright-report
+**/*.user
+*.md
