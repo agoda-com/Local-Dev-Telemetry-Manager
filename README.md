@@ -27,7 +27,7 @@ src/
 | Endpoint | Payload Type |
 |---|---|
 | `POST /dotnet` | .NET MSBuild compile, ASP.NET startup, first response |
-| `POST /dotnet/nunit` | NUnit test results |
+| `POST /dotnet/nunit` | NUnit / xUnit test results |
 | `POST /junit` | JUnit test results |
 | `POST /jest` | Jest test results |
 | `POST /vitest` | Vitest test results |
