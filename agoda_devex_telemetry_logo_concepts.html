@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agoda.DevExTelemetry Logo Concepts</title>
+  <style>
+    :root {
+      --navy: #102235;
+      --charcoal: #1B2430;
+      --slate: #5B6675;
+      --teal: #19C2C9;
+      --blue: #2D7FF9;
+      --magenta: #E63E8D;
+      --light-bg: #F6F8FB;
+      --white: #FFFFFF;
+      --black: #111111;
+      --panel: #E7ECF3;
+      --grid: #D7DEE8;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #eef2f7;
+      color: var(--charcoal);
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
+      border: 1px solid #dbe3ee;
+      border-radius: 20px;
+      padding: 24px 26px;
+      box-shadow: 0 14px 40px rgba(16, 34, 53, 0.06);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--slate);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      border: 1px solid #dbe3ee;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(16, 34, 53, 0.05);
+    }
+
+    .card.dark {
+      background: #0F1722;
+      border-color: #1f2b3a;
+      color: white;
+    }
+
+    .label {
+      padding: 14px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e4eaf2;
+      color: #4a5a6f;
+      background: #fbfcfe;
+    }
+
+    .dark .label {
+      background: #121c2a;
+      color: #b7c4d6;
+      border-bottom-color: #223043;
+    }
+
+    .stage {
+      padding: 22px;
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      background-image: radial-gradient(circle at 1px 1px, rgba(123, 141, 166, 0.12) 1px, transparent 0);
+      background-size: 18px 18px;
+    }
+
+    .dark .stage {
+      background-image: radial-gradient(circle at 1px 1px, rgba(169, 188, 214, 0.08) 1px, transparent 0);
+      background-size: 18px 18px;
+    }
+
+    .notes {
+      padding: 14px 18px 18px;
+      font-size: 13px;
+      color: #617184;
+      line-height: 1.45;
+      border-top: 1px solid #e4eaf2;
+      background: #fcfdff;
+    }
+
+    .dark .notes {
+      color: #a9b8ca;
+      border-top-color: #223043;
+      background: #111a28;
+    }
+
+    .minirow {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chip {
+      border: 1px solid #d7e0ea;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #5c6d81;
+      background: white;
+    }
+
+    svg { max-width: 100%; height: auto; }
+
+    .swatch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 12px;
+      margin-bottom: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Agoda.DevExTelemetry / DX Telemetry Manager</h1>
+      <p class="sub">
+        Minimal engineering-tool identity built around a single compact mark: a telemetry pulse flowing into a structured graph/dashboard frame.
+        The icon is designed to read clearly at small sizes while still implying measurement, feedback loops, and developer workflow.
+      </p>
+      <div style="margin-top:14px">
+        <span class="swatch"><span class="dot" style="background:#102235"></span> Deep Navy</span>
+        <span class="swatch"><span class="dot" style="background:#19C2C9"></span> Teal Accent</span>
+        <span class="swatch"><span class="dot" style="background:#2D7FF9"></span> Electric Blue Option</span>
+        <span class="swatch"><span class="dot" style="background:#E63E8D"></span> Agoda-style Magenta</span>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <div class="label">1) Icon-only mark</div>
+        <div class="stage">
+          <svg viewBox="0 0 320 220" width="260" aria-label="Icon-only mark">
+            <defs>
+              <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#19C2C9"/>
+                <stop offset="100%" stop-color="#2D7FF9"/>
+              </linearGradient>
+            </defs>
+
+            <rect x="76" y="42" width="168" height="136" rx="26" fill="#102235"/>
+            <rect x="94" y="60" width="132" height="100" rx="16" fill="#13293F" stroke="rgba(255,255,255,0.08)"/>
+
+            <path d="M114 124 L136 124 L149 98 L165 142 L180 113 L195 113" fill="none" stroke="url(#accentGrad)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M195 113 L210 113 L210 82" fill="none" stroke="#E63E8D" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <rect x="206" y="74" width="12" height="56" rx="6" fill="#19C2C9" opacity="0.18"/>
+            <rect x="184" y="94" width="12" height="36" rx="6" fill="#19C2C9" opacity="0.18"/>
+            <rect x="162" y="104" width="12" height="26" rx="6" fill="#19C2C9" opacity="0.18"/>
+
+            <circle cx="114" cy="124" r="7" fill="#19C2C9"/>
+            <circle cx="149" cy="98" r="7" fill="#19C2C9"/>
+            <circle cx="165" cy="142" r="7" fill="#2D7FF9"/>
+            <circle cx="180" cy="113" r="7" fill="#19C2C9"/>
+            <circle cx="210" cy="82" r="7" fill="#E63E8D"/>
+          </svg>
+        </div>
+        <div class="notes">
+          Rounded dashboard container plus structured bar geometry gives it a product/tool feel; the pulse path suggests telemetry, developer loops, and measurement rather than generic cloud infra.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="label">2) Horizontal lockup</div>
+        <div class="stage">
+          <svg viewBox="0 0 900 220" width="820" aria-label="Horizontal lockup">
+            <defs>
+              <linearGradient id="accentGrad2" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#19C2C9"/>
+                <stop offset="100%" stop-color="#2D7FF9"/>
+              </linearGradient>
+            </defs>
+
+            <g transform="translate(20,30)">
+              <rect x="0" y="0" width="150" height="150" rx="28" fill="#102235"/>
+              <rect x="18" y="18" width="114" height="114" rx="18" fill="#13293F" stroke="rgba(255,255,255,0.08)"/>
+              <path d="M37 90 L56 90 L68 67 L82 110 L95 82 L110 82" fill="none" stroke="url(#accentGrad2)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M110 82 L121 82 L121 49" fill="none" stroke="#E63E8D" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="37" cy="90" r="6" fill="#19C2C9"/>
+              <circle cx="68" cy="67" r="6" fill="#19C2C9"/>
+              <circle cx="82" cy="110" r="6" fill="#2D7FF9"/>
+              <circle cx="95" cy="82" r="6" fill="#19C2C9"/>
+              <circle cx="121" cy="49" r="6" fill="#E63E8D"/>
+            </g>
+
+            <g transform="translate(210,58)">
+              <text x="0" y="38" font-size="40" font-weight="700" fill="#102235" letter-spacing="-0.03em">Agoda.DevExTelemetry</text>
+              <text x="2" y="82" font-size="24" font-weight="600" fill="#5B6675" letter-spacing="0.02em">DX Telemetry Manager</text>
+              <rect x="2" y="101" width="102" height="6" rx="3" fill="#19C2C9"/>
+              <rect x="112" y="101" width="44" height="6" rx="3" fill="#E63E8D" opacity="0.7"/>
+            </g>
+          </svg>
+        </div>
+        <div class="notes">
+          Optimized for GitHub headers, internal portals, docs landing pages, and admin screens. The subtitle can be removed where space is limited.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="label">3) Monochrome version</div>
+        <div class="stage">
+          <div class="minirow">
+            <svg viewBox="0 0 320 220" width="220" aria-label="Monochrome dark">
+              <rect x="76" y="42" width="168" height="136" rx="26" fill="#111111"/>
+              <rect x="94" y="60" width="132" height="100" rx="16" fill="none" stroke="#ffffff" stroke-opacity="0.2"/>
+              <path d="M114 124 L136 124 L149 98 L165 142 L180 113 L195 113 L210 113 L210 82" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="114" cy="124" r="7" fill="#ffffff"/>
+              <circle cx="149" cy="98" r="7" fill="#ffffff"/>
+              <circle cx="165" cy="142" r="7" fill="#ffffff"/>
+              <circle cx="180" cy="113" r="7" fill="#ffffff"/>
+              <circle cx="210" cy="82" r="7" fill="#ffffff"/>
+            </svg>
+
+            <svg viewBox="0 0 320 220" width="220" aria-label="Monochrome light">
+              <rect x="76" y="42" width="168" height="136" rx="26" fill="#ffffff" stroke="#111111" stroke-width="10"/>
+              <rect x="94" y="60" width="132" height="100" rx="16" fill="none" stroke="#111111" stroke-opacity="0.16"/>
+              <path d="M114 124 L136 124 L149 98 L165 142 L180 113 L195 113 L210 113 L210 82" fill="none" stroke="#111111" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="114" cy="124" r="7" fill="#111111"/>
+              <circle cx="149" cy="98" r="7" fill="#111111"/>
+              <circle cx="165" cy="142" r="7" fill="#111111"/>
+              <circle cx="180" cy="113" r="7" fill="#111111"/>
+              <circle cx="210" cy="82" r="7" fill="#111111"/>
+            </svg>
+          </div>
+        </div>
+        <div class="notes">
+          Clean one-color treatment for CLI docs, stamps, low-ink print, favicons, and GitHub/social avatars where brand color is unavailable.
+        </div>
+      </section>
+
+      <section class="card dark">
+        <div class="label">4) Dark-mode variant</div>
+        <div class="stage">
+          <svg viewBox="0 0 900 220" width="820" aria-label="Dark mode lockup">
+            <defs>
+              <linearGradient id="accentGrad3" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#19C2C9"/>
+                <stop offset="100%" stop-color="#2D7FF9"/>
+              </linearGradient>
+            </defs>
+
+            <g transform="translate(20,30)">
+              <rect x="0" y="0" width="150" height="150" rx="28" fill="#EAF1FA"/>
+              <rect x="18" y="18" width="114" height="114" rx="18" fill="#FFFFFF" stroke="rgba(16,34,53,0.08)"/>
+              <path d="M37 90 L56 90 L68 67 L82 110 L95 82 L110 82" fill="none" stroke="url(#accentGrad3)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M110 82 L121 82 L121 49" fill="none" stroke="#E63E8D" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="37" cy="90" r="6" fill="#19C2C9"/>
+              <circle cx="68" cy="67" r="6" fill="#19C2C9"/>
+              <circle cx="82" cy="110" r="6" fill="#2D7FF9"/>
+              <circle cx="95" cy="82" r="6" fill="#19C2C9"/>
+              <circle cx="121" cy="49" r="6" fill="#E63E8D"/>
+            </g>
+
+            <g transform="translate(210,58)">
+              <text x="0" y="38" font-size="40" font-weight="700" fill="#F6FAFF" letter-spacing="-0.03em">Agoda.DevExTelemetry</text>
+              <text x="2" y="82" font-size="24" font-weight="600" fill="#A9B8CA" letter-spacing="0.02em">DX Telemetry Manager</text>
+              <rect x="2" y="101" width="102" height="6" rx="3" fill="#19C2C9"/>
+              <rect x="112" y="101" width="44" height="6" rx="3" fill="#E63E8D" opacity="0.9"/>
+            </g>
+          </svg>
+        </div>
+        <div class="notes">
+          Inverted treatment for dashboards, internal portals, terminal-adjacent product UIs, and dark GitHub-themed contexts. Keeps the icon high-contrast without feeling loud.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="label">5) Light-mode variant</div>
+        <div class="stage" style="background:#F6F8FB;">
+          <svg viewBox="0 0 900 220" width="820" aria-label="Light mode lockup">
+            <defs>
+              <linearGradient id="accentGrad4" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#19C2C9"/>
+                <stop offset="100%" stop-color="#2D7FF9"/>
+              </linearGradient>
+            </defs>
+
+            <g transform="translate(20,30)">
+              <rect x="0" y="0" width="150" height="150" rx="28" fill="#102235"/>
+              <rect x="18" y="18" width="114" height="114" rx="18" fill="#13293F" stroke="rgba(255,255,255,0.08)"/>
+              <path d="M37 90 L56 90 L68 67 L82 110 L95 82 L110 82" fill="none" stroke="url(#accentGrad4)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M110 82 L121 82 L121 49" fill="none" stroke="#E63E8D" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="37" cy="90" r="6" fill="#19C2C9"/>
+              <circle cx="68" cy="67" r="6" fill="#19C2C9"/>
+              <circle cx="82" cy="110" r="6" fill="#2D7FF9"/>
+              <circle cx="95" cy="82" r="6" fill="#19C2C9"/>
+              <circle cx="121" cy="49" r="6" fill="#E63E8D"/>
+            </g>
+
+            <g transform="translate(210,58)">
+              <text x="0" y="38" font-size="40" font-weight="700" fill="#102235" letter-spacing="-0.03em">Agoda.DevExTelemetry</text>
+              <text x="2" y="82" font-size="24" font-weight="600" fill="#5B6675" letter-spacing="0.02em">DX Telemetry Manager</text>
+              <rect x="2" y="101" width="102" height="6" rx="3" fill="#19C2C9"/>
+              <rect x="112" y="101" width="44" height="6" rx="3" fill="#E63E8D" opacity="0.75"/>
+            </g>
+          </svg>
+        </div>
+        <div class="notes">
+          Primary presentation for README banners, Confluence, internal design docs, and admin screens with light backgrounds.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="label">6) Small-size / favicon check</div>
+        <div class="stage">
+          <svg viewBox="0 0 760 180" width="700" aria-label="Small size testing row">
+            <g transform="translate(0,0)">
+              <text x="0" y="24" font-size="16" fill="#5B6675" font-weight="600">Scalability preview</text>
+            </g>
+            <g transform="translate(40,54)">
+              <g transform="scale(1.8)">
+                <rect x="0" y="0" width="32" height="32" rx="7" fill="#102235"/>
+                <path d="M7 18 L11 18 L14 11 L17 22 L20 16 L24 16 L24 8" fill="none" stroke="#19C2C9" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="24" cy="8" r="1.9" fill="#E63E8D"/>
+              </g>
+              <text x="88" y="34" font-size="15" fill="#102235" font-weight="700">32×32 favicon/app icon</text>
+            </g>
+            <g transform="translate(360,54)">
+              <g transform="scale(3.2)">
+                <rect x="0" y="0" width="32" height="32" rx="7" fill="#102235"/>
+                <path d="M7 18 L11 18 L14 11 L17 22 L20 16 L24 16 L24 8" fill="none" stroke="#19C2C9" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="24" cy="8" r="1.9" fill="#E63E8D"/>
+              </g>
+              <text x="120" y="52" font-size="15" fill="#102235" font-weight="700">README / nav icon</text>
+            </g>
+          </svg>
+        </div>
+        <div class="notes">
+          The simplified tiny-size version keeps only the container, pulse, and terminal datapoint so it remains readable when reduced aggressively.
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
