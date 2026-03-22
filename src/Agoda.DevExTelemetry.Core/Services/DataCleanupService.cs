@@ -9,14 +9,13 @@ using Microsoft.Extensions.Logging;
 namespace Agoda.DevExTelemetry.Core.Services;
 
 [RegisterSingleton(For = typeof(IHostedService))]
-public class DataCleanupService : IHostedService, IDisposable
+public class DataCleanupService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<DataCleanupService> _logger;
     private readonly int _retentionDays;
     private readonly int _cleanupIntervalHours;
     private readonly int _vacuumIntervalDays;
-    private Timer? _timer;
     private DateTime _lastVacuumDate = DateTime.MinValue;
 
     public DataCleanupService(
@@ -31,24 +30,21 @@ public class DataCleanupService : IHostedService, IDisposable
         _vacuumIntervalDays = int.TryParse(configuration["DataRetention:VacuumIntervalDays"], out var vi) ? vi : 7;
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _timer = new Timer(
-            async _ => await ExecuteCleanupAsync(),
-            null,
-            TimeSpan.FromMinutes(5),
-            TimeSpan.FromHours(_cleanupIntervalHours));
+        await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
 
-        return Task.CompletedTask;
+        using var timer = new PeriodicTimer(TimeSpan.FromHours(_cleanupIntervalHours));
+
+        await RunCleanupAsync();
+
+        while (await timer.WaitForNextTickAsync(stoppingToken))
+        {
+            await RunCleanupAsync();
+        }
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        _timer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
-    }
-
-    private async Task ExecuteCleanupAsync()
+    private async Task RunCleanupAsync()
     {
         try
         {
@@ -92,10 +88,5 @@ public class DataCleanupService : IHostedService, IDisposable
         {
             _logger.LogError(ex, "Data cleanup failed");
         }
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
     }
 }
