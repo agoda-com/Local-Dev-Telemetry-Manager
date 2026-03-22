@@ -165,7 +165,15 @@ Compilation/test clients route as follows:
 
 Most corporate networks already use internal DNS for service discovery (for internal APIs, proxies, package mirrors, etc.).
 
-Because clients default to `http://compilation-metrics`, your network/workstation team can create an internal DNS record for `compilation-metrics` pointing to your telemetry API endpoint (ingress/internal LB/service host). Once this is in place:
+Because clients default to `http://compilation-metrics`, your network/workstation team can create an internal DNS record for `compilation-metrics` pointing to your telemetry API endpoint (ingress/internal LB/service host).
+
+Example (corporate internal DNS):
+- You may already have internal domains like `yourcompany.local`.
+- Teams might already access internal systems such as `sql01.yourcompany.local`.
+- Add a DNS record like `compilation-metrics.yourcompany.local` (or a short host alias `compilation-metrics`) and map it to your telemetry endpoint.
+- Once that DNS path exists, the default client URL can resolve and telemetry will flow with zero local setup.
+
+Once this is in place:
 
 - no per-developer setup is required,
 - telemetry works out-of-the-box,
