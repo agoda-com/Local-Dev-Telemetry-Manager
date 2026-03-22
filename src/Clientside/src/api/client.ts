@@ -6,6 +6,7 @@ export interface FilterParams {
   branch?: string;
   testRunner?: string;
   metricType?: string;
+  buildCategory?: string;
   from?: string;
   to?: string;
   page?: number;

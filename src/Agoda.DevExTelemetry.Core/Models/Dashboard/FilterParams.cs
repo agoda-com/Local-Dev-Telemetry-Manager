@@ -6,6 +6,7 @@ public record FilterParams(
     string? Project,
     string? Repository,
     string? Branch,
+    string? BuildCategory,
     DateTime? From,
     DateTime? To,
     int Page = 1,

@@ -24,7 +24,7 @@ export function useApiBuildMetrics(filters: FilterState) {
     setLoading(true);
     setError(null);
 
-    Promise.all([fetchApiBuildSummary(params), fetchBuildMetrics({ ...params, metricType: 'API' })])
+    Promise.all([fetchApiBuildSummary(params), fetchBuildMetrics({ ...params, buildCategory: 'API' })])
       .then(([summary, b]) => {
         if (!cancelled) {
           setData(summary);

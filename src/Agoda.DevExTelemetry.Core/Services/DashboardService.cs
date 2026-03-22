@@ -266,7 +266,13 @@ public class DashboardService : IDashboardService
         }
 
         if (!string.IsNullOrEmpty(filters.Platform))
-            query = query.Where(r => r.Platform == filters.Platform);
+        {
+            var platforms = filters.Platform.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (platforms.Length == 1)
+                query = query.Where(r => r.Platform == platforms[0]);
+            else if (platforms.Length > 1)
+                query = query.Where(r => platforms.Contains(r.Platform));
+        }
 
         if (!string.IsNullOrEmpty(filters.Project))
             query = query.Where(r => r.ProjectName == filters.Project);
@@ -298,7 +304,16 @@ public class DashboardService : IDashboardService
         }
 
         if (!string.IsNullOrEmpty(filters.Platform))
-            query = query.Where(b => b.Platform == filters.Platform);
+        {
+            var platforms = filters.Platform.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (platforms.Length == 1)
+                query = query.Where(b => b.Platform == platforms[0]);
+            else if (platforms.Length > 1)
+                query = query.Where(b => platforms.Contains(b.Platform));
+        }
+
+        if (!string.IsNullOrEmpty(filters.BuildCategory))
+            query = query.Where(b => b.BuildCategory == filters.BuildCategory);
 
         if (!string.IsNullOrEmpty(filters.Project))
             query = query.Where(b => b.ProjectName == filters.Project);

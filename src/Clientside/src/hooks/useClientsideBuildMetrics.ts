@@ -26,7 +26,7 @@ export function useClientsideBuildMetrics(filters: FilterState) {
 
     Promise.all([
       fetchClientsideBuildSummary(params),
-      fetchBuildMetrics({ ...params, metricType: 'Clientside' }),
+      fetchBuildMetrics({ ...params, buildCategory: 'Clientside' }),
     ])
       .then(([summary, b]) => {
         if (!cancelled) {

@@ -6,13 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Agoda.DevExTelemetry.Core.Services;
 
-public class JUnitXmlParseResult
-{
-    public List<TestCase> TestCases { get; init; } = new();
-    public bool HasParseErrors { get; init; }
-    public string? ErrorMessage { get; init; }
-}
-
 public interface IJUnitXmlParser
 {
     JUnitXmlParseResult Parse(Stream xmlStream, string testRunId);
