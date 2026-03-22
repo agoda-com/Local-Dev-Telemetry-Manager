@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Entities;
 using Agoda.DevExTelemetry.Core.Models.Ingest;
