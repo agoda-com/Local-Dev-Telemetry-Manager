@@ -21,7 +21,7 @@ export function AppShell({ children }: AppShellProps) {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-screen-2xl mx-auto px-8">
           <div className="flex items-center gap-3 pt-3 pb-2">
-            <img src={logo} alt="DX Telemetry" className="h-9 w-auto object-contain" />
+            <img src={logo} alt="DX Telemetry" className="h-12 w-auto object-contain" />
           </div>
           <nav className="flex gap-1 -mb-px">
             {TABS.map((t) => {
