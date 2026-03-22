@@ -20,7 +20,7 @@
   </g>
 
   <g transform="translate(210,58)">
-    <text x="0" y="38" font-size="40" font-weight="700" fill="#102235" letter-spacing="-0.03em" font-family="Inter, Segoe UI, Arial, sans-serif">Agoda.DevExTelemetry</text>
+    <text x="0" y="38" font-size="40" font-weight="700" fill="#102235" letter-spacing="-0.03em" font-family="Inter, Segoe UI, Arial, sans-serif">DX Telemetry</text>
     <text x="2" y="82" font-size="24" font-weight="600" fill="#5B6675" letter-spacing="0.02em" font-family="Inter, Segoe UI, Arial, sans-serif">DX Telemetry Manager</text>
     <rect x="2" y="101" width="102" height="6" rx="3" fill="#19C2C9"/>
     <rect x="112" y="101" width="44" height="6" rx="3" fill="#E63E8D" opacity="0.75"/>
