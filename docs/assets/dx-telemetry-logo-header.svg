@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220" role="img" aria-label="DX Telemetry Manager logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220" role="img" aria-label="Observe, Optimize, Deliver logo">
   <rect x="0" y="0" width="900" height="220" fill="#FFFFFF"/>
   <defs>
     <linearGradient id="accentGrad4" x1="0" y1="0" x2="1" y2="1">
@@ -21,7 +21,7 @@
 
   <g transform="translate(210,58)">
     <text x="0" y="38" font-size="40" font-weight="700" fill="#102235" letter-spacing="-0.03em" font-family="Inter, Segoe UI, Arial, sans-serif">DX Telemetry</text>
-    <text x="2" y="82" font-size="24" font-weight="600" fill="#5B6675" letter-spacing="0.02em" font-family="Inter, Segoe UI, Arial, sans-serif">DX Telemetry Manager</text>
+    <text x="2" y="82" font-size="24" font-weight="600" fill="#5B6675" letter-spacing="0.02em" font-family="Inter, Segoe UI, Arial, sans-serif">Observe, Optimize, Deliver</text>
     <rect x="2" y="101" width="102" height="6" rx="3" fill="#19C2C9"/>
     <rect x="112" y="101" width="44" height="6" rx="3" fill="#E63E8D" opacity="0.75"/>
   </g>
