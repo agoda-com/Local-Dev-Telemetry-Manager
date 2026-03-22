@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Entities;
+using Agoda.DevExTelemetry.Core.Models.Ingest;
 using Agoda.DevExTelemetry.Core.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,21 +14,22 @@ namespace Agoda.DevExTelemetry.WebApi.Controllers;
 [ApiController]
 public class TestDataController : ControllerBase
 {
-    private readonly IIngestService _ingestService;
+    private readonly IBackgroundTaskQueue<IngestTestRunWorkItem> _queue;
     private readonly IEnvironmentDetector _environmentDetector;
     private readonly IJUnitXmlParser _junitXmlParser;
 
     public TestDataController(
-        IIngestService ingestService,
+        IBackgroundTaskQueue<IngestTestRunWorkItem> queue,
         IEnvironmentDetector environmentDetector,
         IJUnitXmlParser junitXmlParser)
     {
-        _ingestService = ingestService;
+        _queue = queue;
         _environmentDetector = environmentDetector;
         _junitXmlParser = junitXmlParser;
     }
 
     [HttpPost("testdata/junit")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> IngestJUnit(
         [FromForm] string? id,
         [FromForm] string? runId,
@@ -85,7 +87,11 @@ public class TestDataController : ControllerBase
             SourceEndpoint = "/testdata/junit"
         };
 
-        await _ingestService.IngestTestRunAsync(testRun, allTestCases);
+        await _queue.QueueBackgroundWorkItemAsync(_ => new IngestTestRunWorkItem
+        {
+            TestRun = testRun,
+            TestCases = allTestCases
+        });
 
         var testSuiteCounts = allTestCases
             .GroupBy(tc => tc.ClassName ?? "Unknown")

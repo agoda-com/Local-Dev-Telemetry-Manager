@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Entities;
 using Agoda.DevExTelemetry.Core.Models.Ingest;
 using Agoda.DevExTelemetry.Core.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agoda.DevExTelemetry.WebApi.Controllers;
@@ -15,21 +16,22 @@ public class JUnitController : ControllerBase
 {
     private const int MaxErrorMessageLength = 4096;
 
-    private readonly IIngestService _ingestService;
+    private readonly IBackgroundTaskQueue<IngestTestRunWorkItem> _queue;
     private readonly IEnvironmentDetector _environmentDetector;
     private readonly IStatusNormalizer _statusNormalizer;
 
     public JUnitController(
-        IIngestService ingestService,
+        IBackgroundTaskQueue<IngestTestRunWorkItem> queue,
         IEnvironmentDetector environmentDetector,
         IStatusNormalizer statusNormalizer)
     {
-        _ingestService = ingestService;
+        _queue = queue;
         _environmentDetector = environmentDetector;
         _statusNormalizer = statusNormalizer;
     }
 
     [HttpPost("junit")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> Ingest([FromBody] JUnitPayload payload)
     {
         var platformStr = ((PlatformID)payload.Platform).ToString();
@@ -93,9 +95,14 @@ public class JUnitController : ControllerBase
             SourceEndpoint = "/junit"
         };
 
-        await _ingestService.IngestTestRunAsync(testRun, testCases);
-        await _ingestService.StoreRawPayloadAsync("/junit", "application/json",
-            JsonSerializer.Serialize(payload));
+        await _queue.QueueBackgroundWorkItemAsync(_ => new IngestTestRunWorkItem
+        {
+            TestRun = testRun,
+            TestCases = testCases,
+            RawPayloadEndpoint = "/junit",
+            RawPayloadContentType = "application/json",
+            RawPayloadJson = JsonSerializer.Serialize(payload)
+        });
 
         return Ok();
     }

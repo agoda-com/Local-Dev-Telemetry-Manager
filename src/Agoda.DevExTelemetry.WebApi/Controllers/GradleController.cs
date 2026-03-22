@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Entities;
 using Agoda.DevExTelemetry.Core.Models.Ingest;
 using Agoda.DevExTelemetry.Core.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agoda.DevExTelemetry.WebApi.Controllers;
@@ -12,21 +13,22 @@ namespace Agoda.DevExTelemetry.WebApi.Controllers;
 [ApiController]
 public class GradleController : ControllerBase
 {
-    private readonly IIngestService _ingestService;
+    private readonly IBackgroundTaskQueue<IngestBuildMetricWorkItem> _queue;
     private readonly IEnvironmentDetector _environmentDetector;
     private readonly IBuildCategoryClassifier _classifier;
 
     public GradleController(
-        IIngestService ingestService,
+        IBackgroundTaskQueue<IngestBuildMetricWorkItem> queue,
         IEnvironmentDetector environmentDetector,
         IBuildCategoryClassifier classifier)
     {
-        _ingestService = ingestService;
+        _queue = queue;
         _environmentDetector = environmentDetector;
         _classifier = classifier;
     }
 
     [HttpPost("gradletalaiot")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> Ingest([FromBody] GradleTalaiotPayload payload)
     {
         var platformStr = payload.Platform ?? string.Empty;
@@ -77,9 +79,13 @@ public class GradleController : ControllerBase
             ExtraData = JsonSerializer.Serialize(extraData)
         };
 
-        await _ingestService.IngestBuildMetricAsync(metric);
-        await _ingestService.StoreRawPayloadAsync("/gradletalaiot", "application/json",
-            JsonSerializer.Serialize(payload));
+        await _queue.QueueBackgroundWorkItemAsync(_ => new IngestBuildMetricWorkItem
+        {
+            BuildMetric = metric,
+            RawPayloadEndpoint = "/gradletalaiot",
+            RawPayloadContentType = "application/json",
+            RawPayloadJson = JsonSerializer.Serialize(payload)
+        });
 
         return Ok();
     }
