@@ -17,6 +17,8 @@ const ctCorePkg = path.join(
   __dirname, '..', 'node_modules', '@playwright', 'experimental-ct-core',
 );
 
+let patchedCount = 0;
+
 // Patch 1: preserve Symbol properties in defineConfig wrapper
 const indexPath = path.join(ctCorePkg, 'index.js');
 let indexSrc = fs.readFileSync(indexPath, 'utf-8');
@@ -51,10 +53,14 @@ if (indexSrc.includes(oldSpread)) {
   indexSrc = indexSrc.replace(oldSpread, newSpread);
   fs.writeFileSync(indexPath, indexSrc, 'utf-8');
   console.log('[patch-playwright] Patched ct-core/index.js (Symbol preservation)');
+  patchedCount++;
 } else if (indexSrc.includes('getOwnPropertySymbols')) {
   console.log('[patch-playwright] ct-core/index.js already patched');
+  patchedCount++;
 } else {
-  console.warn('[patch-playwright] Could not find expected code in ct-core/index.js');
+  console.error('[patch-playwright] FATAL: Could not find expected code in ct-core/index.js');
+  console.error('[patch-playwright] Playwright CT tests will fail. Update the patch for the installed version.');
+  process.exit(1);
 }
 
 // Patch 2: remove defineConfigWasUsed guard in mount.js
@@ -69,8 +75,14 @@ if (mountSrc.includes(guardLine)) {
   mountSrc = mountSrc.replace(guardLine, '');
   fs.writeFileSync(mountPath, mountSrc, 'utf-8');
   console.log('[patch-playwright] Patched ct-core/lib/mount.js (removed defineConfig guard)');
+  patchedCount++;
 } else if (!mountSrc.includes('defineConfigWasUsed')) {
   console.log('[patch-playwright] ct-core/lib/mount.js already patched');
+  patchedCount++;
 } else {
-  console.warn('[patch-playwright] Could not find expected guard in ct-core/lib/mount.js');
+  console.error('[patch-playwright] FATAL: Could not find expected guard in ct-core/lib/mount.js');
+  console.error('[patch-playwright] Playwright CT tests will fail. Update the patch for the installed version.');
+  process.exit(1);
 }
+
+console.log(`[patch-playwright] Done (${patchedCount}/2 patches verified)`);
