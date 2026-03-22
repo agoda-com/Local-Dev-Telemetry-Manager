@@ -86,7 +86,7 @@ public class WebpackController : ControllerBase
             ExtraData = JsonSerializer.Serialize(extraData)
         };
 
-        await _queue.QueueBackgroundWorkItemAsync(_ => new IngestBuildMetricWorkItem
+        await _queue.QueueBackgroundWorkItemAsync(new IngestBuildMetricWorkItem
         {
             BuildMetric = metric,
             RawPayloadJson = JsonSerializer.Serialize(payload),

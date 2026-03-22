@@ -1,9 +1,6 @@
 using System.Runtime.CompilerServices;
 using Agoda.DevExTelemetry.Core.Configs;
 using Agoda.DevExTelemetry.Core.Data;
-using Agoda.DevExTelemetry.Core.Models.Ingest;
-using Agoda.DevExTelemetry.Core.Services;
-using Agoda.DevExTelemetry.WebApi.Services;
 using Agoda.IoC.NetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
@@ -69,11 +66,6 @@ builder.Services.AddSwaggerGen(c =>
         $"{e.ActionDescriptor.RouteValues["controller"]}_{e.ActionDescriptor.RouteValues["action"]}");
     c.EnableAnnotations();
 });
-
-builder.Services.AddSingleton<IBackgroundTaskQueue<IngestTestRunWorkItem>, BackgroundTaskQueue<IngestTestRunWorkItem>>();
-builder.Services.AddSingleton<IBackgroundTaskQueue<IngestBuildMetricWorkItem>, BackgroundTaskQueue<IngestBuildMetricWorkItem>>();
-builder.Services.AddHostedService<TestRunIngestQueue>();
-builder.Services.AddHostedService<BuildMetricIngestQueue>();
 
 builder.Services.AutoWireAssembly(new[]
 {

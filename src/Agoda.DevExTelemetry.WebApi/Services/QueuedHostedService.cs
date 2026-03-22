@@ -24,8 +24,7 @@ public abstract class QueuedHostedService<T> : BackgroundService
         await BackgroundProcessing(stoppingToken);
     }
 
-    protected abstract Task ProcessWorkItem(
-        Func<CancellationToken, T> message, CancellationToken stoppingToken);
+    protected abstract Task ProcessWorkItem(T workItem, CancellationToken stoppingToken);
 
     private async Task BackgroundProcessing(CancellationToken stoppingToken)
     {

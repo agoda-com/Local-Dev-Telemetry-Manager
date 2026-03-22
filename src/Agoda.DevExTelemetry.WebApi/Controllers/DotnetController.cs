@@ -72,7 +72,7 @@ public class DotnetController : ControllerBase
 
         var rawJson = JsonSerializer.Serialize(payload);
 
-        await _buildMetricQueue.QueueBackgroundWorkItemAsync(_ => new IngestBuildMetricWorkItem
+        await _buildMetricQueue.QueueBackgroundWorkItemAsync(new IngestBuildMetricWorkItem
         {
             BuildMetric = metric,
             RawPayloadJson = rawJson,
@@ -150,7 +150,7 @@ public class DotnetController : ControllerBase
 
         var rawJson = JsonSerializer.Serialize(payload);
 
-        await _testRunQueue.QueueBackgroundWorkItemAsync(_ => new IngestTestRunWorkItem
+        await _testRunQueue.QueueBackgroundWorkItemAsync(new IngestTestRunWorkItem
         {
             TestRun = testRun,
             TestCases = testCases,

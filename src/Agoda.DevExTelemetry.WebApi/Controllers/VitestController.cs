@@ -95,7 +95,7 @@ public class VitestController : ControllerBase
             ExtraData = filesExtraData
         };
 
-        await _queue.QueueBackgroundWorkItemAsync(_ => new IngestTestRunWorkItem
+        await _queue.QueueBackgroundWorkItemAsync(new IngestTestRunWorkItem
         {
             TestRun = testRun,
             TestCases = testCases,

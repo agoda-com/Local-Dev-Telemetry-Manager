@@ -116,7 +116,7 @@ public class JestController : ControllerBase
             ExtraData = extraData != null ? JsonSerializer.Serialize(extraData) : null
         };
 
-        await _queue.QueueBackgroundWorkItemAsync(_ => new IngestTestRunWorkItem
+        await _queue.QueueBackgroundWorkItemAsync(new IngestTestRunWorkItem
         {
             TestRun = testRun,
             TestCases = testCases,

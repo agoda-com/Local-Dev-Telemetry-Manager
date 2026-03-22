@@ -3,11 +3,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Ingest;
 using Agoda.DevExTelemetry.Core.Services;
+using Agoda.IoC.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Agoda.DevExTelemetry.WebApi.Services;
 
+[RegisterSingleton(For = typeof(IHostedService))]
 public class TestRunIngestQueue : QueuedHostedService<IngestTestRunWorkItem>
 {
     private readonly IServiceProvider _serviceProvider;
@@ -22,10 +25,8 @@ public class TestRunIngestQueue : QueuedHostedService<IngestTestRunWorkItem>
     }
 
     protected override async Task ProcessWorkItem(
-        Func<CancellationToken, IngestTestRunWorkItem> message, CancellationToken stoppingToken)
+        IngestTestRunWorkItem workItem, CancellationToken stoppingToken)
     {
-        var workItem = message(stoppingToken);
-
         using var scope = _serviceProvider.CreateScope();
         var ingestService = scope.ServiceProvider.GetRequiredService<IIngestService>();
 
