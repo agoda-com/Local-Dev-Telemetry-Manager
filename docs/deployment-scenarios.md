@@ -139,9 +139,6 @@ services:
       - "8080:8080"
     volumes:
       - telemetry-data:/app/data
-    environment:
-      # No POSTGRES_CONNECTION_STRING => app falls back to SQLite
-      - ConnectionStrings__DefaultConnection=Data Source=/app/data/devex-telemetry.db
 
 volumes:
   telemetry-data:
