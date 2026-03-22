@@ -32,6 +32,7 @@ public class ViteIngestTests
         var response = await TestFixtures.PostJsonAsync(_client, "/vite", payload);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();
@@ -44,6 +45,7 @@ public class ViteIngestTests
     {
         var payload = TestFixtures.CreateVitePayload(type: "vitehmr");
         await TestFixtures.PostJsonAsync(_client, "/vite", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();
@@ -56,6 +58,7 @@ public class ViteIngestTests
     {
         var payload = TestFixtures.CreateVitePayload();
         await TestFixtures.PostJsonAsync(_client, "/vite", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();

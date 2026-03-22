@@ -40,6 +40,10 @@ public abstract class QueuedHostedService<T> : BackgroundService
             {
                 _logger.LogError(ex, "Error occurred executing {WorkItem}", nameof(workItem));
             }
+            finally
+            {
+                _taskQueue.NotifyItemProcessed();
+            }
         }
     }
 

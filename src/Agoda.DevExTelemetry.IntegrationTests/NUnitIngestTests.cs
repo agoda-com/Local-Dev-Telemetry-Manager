@@ -32,6 +32,7 @@ public class NUnitIngestTests
         var response = await TestFixtures.PostJsonAsync(_client, "/dotnet/nunit", payload);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var runs = await db.TestRuns.ToListAsync();
@@ -73,6 +74,7 @@ public class NUnitIngestTests
         };
 
         await TestFixtures.PostJsonAsync(_client, "/dotnet/nunit", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var testCase = await db.TestCases.FirstOrDefaultAsync();
@@ -106,6 +108,7 @@ public class NUnitIngestTests
         };
 
         await TestFixtures.PostJsonAsync(_client, "/dotnet/nunit", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var cases = await db.TestCases.OrderBy(c => c.Name).ToListAsync();
@@ -119,6 +122,7 @@ public class NUnitIngestTests
     {
         var payload = TestFixtures.CreateNUnitPayload(testCaseCount: 6);
         await TestFixtures.PostJsonAsync(_client, "/dotnet/nunit", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var run = await db.TestRuns.FirstOrDefaultAsync();

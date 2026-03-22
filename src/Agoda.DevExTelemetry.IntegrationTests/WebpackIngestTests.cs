@@ -32,6 +32,7 @@ public class WebpackIngestTests
         var response = await TestFixtures.PostJsonAsync(_client, "/webpack", payload);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();
@@ -44,6 +45,7 @@ public class WebpackIngestTests
     {
         var payload = TestFixtures.CreateWebpackPayload(withHmrFeedback: false);
         await TestFixtures.PostJsonAsync(_client, "/webpack", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();
@@ -56,6 +58,7 @@ public class WebpackIngestTests
     {
         var payload = TestFixtures.CreateWebpackPayload(withHmrFeedback: true);
         await TestFixtures.PostJsonAsync(_client, "/webpack", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();
@@ -68,6 +71,7 @@ public class WebpackIngestTests
     {
         var payload = TestFixtures.CreateWebpackPayload(withHmrFeedback: true);
         await TestFixtures.PostJsonAsync(_client, "/webpack", payload);
+        await _factory.DrainBackgroundQueuesAsync();
 
         using var db = _factory.CreateDbContext();
         var metric = await db.BuildMetrics.FirstOrDefaultAsync();

@@ -1,4 +1,6 @@
 using Agoda.DevExTelemetry.Core.Data;
+using Agoda.DevExTelemetry.Core.Models.Ingest;
+using Agoda.DevExTelemetry.Core.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -34,6 +36,19 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         var scope = Services.CreateScope();
         return scope.ServiceProvider.GetRequiredService<TelemetryDbContext>();
+    }
+
+    public async Task DrainBackgroundQueuesAsync(CancellationToken cancellationToken = default)
+    {
+        var testRunQueue = Services.GetRequiredService<IBackgroundTaskQueue<IngestTestRunWorkItem>>();
+        var buildMetricQueue = Services.GetRequiredService<IBackgroundTaskQueue<IngestBuildMetricWorkItem>>();
+
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(10));
+
+        await Task.WhenAll(
+            testRunQueue.WaitUntilDrainedAsync(cts.Token),
+            buildMetricQueue.WaitUntilDrainedAsync(cts.Token));
     }
 
     protected override void Dispose(bool disposing)
