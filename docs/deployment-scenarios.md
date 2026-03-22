@@ -122,6 +122,7 @@ env:
 - Runs only the app container.
 - Uses SQLite file storage inside a mounted Docker volume.
 - Best for solo usage, demos, and very small temporary setups.
+- **For development and testing only — not for production use.**
 
 ```mermaid
 flowchart LR
