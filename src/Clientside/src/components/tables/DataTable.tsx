@@ -7,15 +7,6 @@ import {
   type ColumnDef,
   type SortingState,
 } from '@tanstack/react-table';
-import {
-  Table,
-  TableHead,
-  TableHeaderCell,
-  TableBody,
-  TableRow,
-  TableCell,
-  Text,
-} from '@tremor/react';
 import { RiArrowUpSLine, RiArrowDownSLine } from '@remixicon/react';
 
 interface DataTableProps<T> {
@@ -49,70 +40,74 @@ export function DataTable<T>({
   const totalPages = totalCount != null ? Math.ceil(totalCount / pageSize) : 1;
 
   return (
-    <div>
-      <Table>
-        <TableHead>
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <tr key={headerGroup.id} className="border-b border-slate-100">
               {headerGroup.headers.map((header) => (
-                <TableHeaderCell
+                <th
                   key={header.id}
-                  className={header.column.getCanSort() ? 'cursor-pointer select-none' : ''}
+                  className={`px-4 py-3 text-left text-[11px] font-medium uppercase tracking-[0.05em] text-slate-400 ${
+                    header.column.getCanSort()
+                      ? 'cursor-pointer select-none hover:text-slate-600'
+                      : ''
+                  }`}
                   onClick={header.column.getToggleSortingHandler()}
                 >
                   <div className="flex items-center gap-1">
                     {flexRender(header.column.columnDef.header, header.getContext())}
                     {header.column.getIsSorted() === 'asc' && (
-                      <RiArrowUpSLine className="h-4 w-4" />
+                      <RiArrowUpSLine className="h-3.5 w-3.5" />
                     )}
                     {header.column.getIsSorted() === 'desc' && (
-                      <RiArrowDownSLine className="h-4 w-4" />
+                      <RiArrowDownSLine className="h-3.5 w-3.5" />
                     )}
                   </div>
-                </TableHeaderCell>
+                </th>
               ))}
-            </TableRow>
+            </tr>
           ))}
-        </TableHead>
-        <TableBody>
+        </thead>
+        <tbody className="divide-y divide-slate-100/60">
           {table.getRowModel().rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length}>
-                <Text className="text-center py-4">No data available</Text>
-              </TableCell>
-            </TableRow>
+            <tr>
+              <td colSpan={columns.length} className="px-4 py-8 text-center text-sm text-slate-400">
+                No data available
+              </td>
+            </tr>
           ) : (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <tr key={row.id} className="hover:bg-slate-50/60 transition-colors duration-100">
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <td key={cell.id} className="px-4 py-3.5 text-sm text-slate-600">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+                  </td>
                 ))}
-              </TableRow>
+              </tr>
             ))
           )}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
 
       {onPageChange && totalCount != null && totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-          <Text className="text-sm text-gray-500">
+        <div className="flex items-center justify-between px-4 py-3.5 border-t border-slate-100">
+          <p className="text-xs text-slate-400">
             Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} of{' '}
             {totalCount}
-          </Text>
+          </p>
           <div className="flex gap-2">
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
-              className="px-3 py-1 text-sm rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
+              className="px-3.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-500 disabled:opacity-40 hover:bg-slate-50 hover:border-slate-300 transition-all"
             >
               Previous
             </button>
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              className="px-3 py-1 text-sm rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
+              className="px-3.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-500 disabled:opacity-40 hover:bg-slate-50 hover:border-slate-300 transition-all"
             >
               Next
             </button>

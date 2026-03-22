@@ -1,10 +1,11 @@
-import { LineChart, BarChart } from '@tremor/react';
 import { RiCodeLine, RiRocketLine, RiFlashlightLine } from '@remixicon/react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { DashboardGrid } from '../../components/layout/DashboardGrid';
 import { StatCard } from '../../components/cards/StatCard';
 import { ChartCard } from '../../components/cards/ChartCard';
+import { TrendLineChart } from '../../components/charts/TrendLineChart';
+import { TrendBarChart } from '../../components/charts/TrendBarChart';
 import { GlobalFilters } from '../../components/filters/GlobalFilters';
 import { DataTable } from '../../components/tables/DataTable';
 import { useFilters } from '../../hooks/useFilters';
@@ -52,28 +53,29 @@ export function ApiBuildDashboard() {
           title="Avg Startup Time"
           value={formatMs(data?.avgStartupTimeMs)}
           icon={RiRocketLine}
+          iconTint="green"
           sparklineData={data?.startupTrend}
         />
         <StatCard
           title="Avg First Response"
           value={formatMs(data?.avgFirstResponseTimeMs)}
           icon={RiFlashlightLine}
+          iconTint="amber"
           sparklineData={data?.firstResponseTrend}
         />
       </DashboardGrid>
 
       <DashboardGrid columns={2}>
         <ChartCard title="Build Lifecycle Over Time">
-          <LineChart
+          <TrendLineChart
             data={data?.dailyLifecycle ?? []}
             index="date"
             categories={['avgCompileMs', 'avgStartupMs', 'avgFirstResponseMs']}
             colors={['blue', 'emerald', 'amber']}
-            yAxisWidth={56}
           />
         </ChartCard>
         <ChartCard title="Lifecycle Breakdown">
-          <BarChart
+          <TrendBarChart
             data={data?.dailyLifecycle ?? []}
             index="date"
             categories={['avgCompileMs', 'avgStartupMs', 'avgFirstResponseMs']}

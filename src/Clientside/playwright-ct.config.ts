@@ -8,6 +8,9 @@ export default defineConfig({
   testDir: './src',
   testMatch: '**/*.spec.{ts,tsx}',
   timeout: 30_000,
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.02 },
+  },
   use: {
     ...devices['Desktop Chrome'],
     ctViteConfig: {

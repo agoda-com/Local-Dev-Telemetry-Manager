@@ -8,7 +8,7 @@ test('renders header title', async ({ mount }) => {
     </AppShell>,
     { hooksConfig: { enableRouting: true } },
   );
-  await expect(component.getByText('DevEx Telemetry')).toBeVisible();
+  await expect(component.getByText('DX')).toBeVisible();
 });
 
 test('renders all navigation tabs', async ({ mount }) => {
@@ -18,9 +18,9 @@ test('renders all navigation tabs', async ({ mount }) => {
     </AppShell>,
     { hooksConfig: { enableRouting: true } },
   );
-  await expect(component.getByText('Test Runs')).toBeVisible();
-  await expect(component.getByText('API Build')).toBeVisible();
-  await expect(component.getByText('Clientside Build')).toBeVisible();
+  await expect(component.getByRole('button', { name: 'Test Runs' })).toBeVisible();
+  await expect(component.getByRole('button', { name: 'API Build' })).toBeVisible();
+  await expect(component.getByRole('button', { name: 'Clientside Build' })).toBeVisible();
 });
 
 test('renders children in main area', async ({ mount }) => {

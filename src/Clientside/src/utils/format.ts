@@ -1,3 +1,8 @@
+export function formatNumber(n: number | null | undefined): string {
+  if (n == null) return '—';
+  return n.toLocaleString('en-US');
+}
+
 export function formatMs(ms: number | null | undefined): string {
   if (ms == null) return '—';
   if (ms >= 60_000) {

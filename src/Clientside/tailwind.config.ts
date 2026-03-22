@@ -9,6 +9,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       colors: {
         brand: {
           50: '#eff6ff',
@@ -23,6 +26,16 @@ const config: Config = {
           900: '#1e3a8a',
           950: '#172554',
         },
+        surface: '#f4f6f9',
+      },
+      borderRadius: {
+        xl: '1rem',
+        '2xl': '1.25rem',
+      },
+      boxShadow: {
+        card: '0 2px 8px rgb(0 0 0 / 0.06)',
+        'card-hover': '0 6px 16px rgb(0 0 0 / 0.08)',
+        soft: '0 2px 8px 0 rgb(0 0 0 / 0.05)',
       },
     },
   },
