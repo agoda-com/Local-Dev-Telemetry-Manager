@@ -9,8 +9,8 @@ This document shows common deployment patterns for Agoda.DevExTelemetry and how 
 
 ```mermaid
 flowchart LR
-  DevMachines[Developer machines\n(build/test clients)] -->|HTTP metrics| API[DevExTelemetry API\nDocker container]
-  API --> DB[(PostgreSQL\nDocker volume)]
+  DevMachines["Developer machines<br/>(build/test clients)"] -->|HTTP metrics| API["DevExTelemetry API<br/>Docker container"]
+  API --> DB[("PostgreSQL<br/>Docker volume")]
 ```
 
 ### Pros
@@ -31,9 +31,9 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  Clients[Developer machines] --> DNS[Internal DNS\ncompilation-metrics]
-  DNS --> API[DevExTelemetry API\nManaged host]
-  API --> DB[(Managed PostgreSQL)]
+  Clients["Developer machines"] --> DNS["Internal DNS<br/>compilation-metrics"]
+  DNS --> API["DevExTelemetry API<br/>Managed host"]
+  API --> DB[("Managed PostgreSQL")]
 ```
 
 ### Pros
@@ -52,10 +52,10 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  A[Team A clients\ndefault URL] --> DNS[compilation-metrics DNS]
-  B[Team B clients\nDEVFEEDBACK_URL set] --> API
-  DNS --> API[DevExTelemetry API]
-  API --> DB[(PostgreSQL)]
+  A["Team A clients<br/>default URL"] --> DNS["compilation-metrics DNS"]
+  B["Team B clients<br/>DEVFEEDBACK_URL set"] --> API
+  DNS --> API["DevExTelemetry API"]
+  API --> DB[("PostgreSQL")]
 ```
 
 ### Pros
