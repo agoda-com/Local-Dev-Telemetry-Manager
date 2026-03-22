@@ -1,5 +1,3 @@
-import { TabGroup, TabList, Tab } from '@tremor/react';
-
 const ENVIRONMENTS = ['All', 'Local', 'CI'];
 
 interface EnvironmentToggleProps {
@@ -8,18 +6,22 @@ interface EnvironmentToggleProps {
 }
 
 export function EnvironmentToggle({ value, onChange }: EnvironmentToggleProps) {
-  const currentIndex = ENVIRONMENTS.findIndex((e) => e.toLowerCase() === value.toLowerCase());
-
   return (
-    <TabGroup
-      index={currentIndex >= 0 ? currentIndex : 0}
-      onIndexChange={(i) => onChange(ENVIRONMENTS[i].toLowerCase())}
-    >
-      <TabList variant="solid" className="w-fit">
-        {ENVIRONMENTS.map((env) => (
-          <Tab key={env}>{env}</Tab>
-        ))}
-      </TabList>
-    </TabGroup>
+    <div className="inline-flex rounded-xl bg-slate-100 p-1">
+      {ENVIRONMENTS.map((env) => {
+        const isActive = env.toLowerCase() === value.toLowerCase();
+        return (
+          <button
+            key={env}
+            onClick={() => onChange(env.toLowerCase())}
+            className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-150 ${
+              isActive ? 'bg-white text-slate-700 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            {env}
+          </button>
+        );
+      })}
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { TabGroup, TabList, Tab } from '@tremor/react';
+import logo from '../../DevExSml.png';
 
 const TABS = [
   { name: 'Test Runs', path: '/test-runs' },
@@ -16,24 +16,35 @@ export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const currentIndex = TABS.findIndex((t) => location.pathname.startsWith(t.path));
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 pt-5 pb-0">
-        <h1 className="text-xl font-semibold text-gray-900 mb-4">DevEx Telemetry</h1>
-        <TabGroup
-          index={currentIndex >= 0 ? currentIndex : 0}
-          onIndexChange={(i) => navigate(TABS[i].path)}
-        >
-          <TabList variant="line">
-            {TABS.map((t) => (
-              <Tab key={t.path}>{t.name}</Tab>
-            ))}
-          </TabList>
-        </TabGroup>
+    <div className="min-h-screen" style={{ backgroundColor: '#f4f6f9' }}>
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div className="max-w-screen-2xl mx-auto px-8">
+          <div className="flex items-center gap-3 pt-4 pb-3">
+            <img src={logo} alt="DX" className="h-8 w-8 object-contain" />
+            <span className="text-[17px] font-semibold tracking-tight text-slate-800">DX</span>
+          </div>
+          <nav className="flex gap-1 -mb-px">
+            {TABS.map((t) => {
+              const isActive = location.pathname.startsWith(t.path);
+              return (
+                <button
+                  key={t.path}
+                  onClick={() => navigate(t.path)}
+                  className={`px-4 py-2.5 text-[14px] font-medium transition-colors border-b-2 ${
+                    isActive
+                      ? 'border-brand-500 text-brand-600'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  {t.name}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
       </header>
-      <main className="p-6 max-w-screen-2xl mx-auto">{children}</main>
+      <main className="px-8 py-6 max-w-screen-2xl mx-auto">{children}</main>
     </div>
   );
 }

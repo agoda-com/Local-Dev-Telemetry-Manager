@@ -1,4 +1,3 @@
-import { LineChart, BarChart } from '@tremor/react';
 import { RiTimeLine, RiSpeedLine, RiCheckboxCircleLine, RiCloseCircleLine } from '@remixicon/react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +5,8 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { DashboardGrid } from '../../components/layout/DashboardGrid';
 import { StatCard } from '../../components/cards/StatCard';
 import { ChartCard } from '../../components/cards/ChartCard';
+import { TrendLineChart } from '../../components/charts/TrendLineChart';
+import { TrendBarChart } from '../../components/charts/TrendBarChart';
 import { GlobalFilters } from '../../components/filters/GlobalFilters';
 import { DataTable } from '../../components/tables/DataTable';
 import { useFilters } from '../../hooks/useFilters';
@@ -54,28 +55,29 @@ export function TestRunDashboard() {
           title="Avg Duration"
           value={formatMs(summary?.avgDurationMs)}
           icon={RiSpeedLine}
+          iconTint="amber"
         />
         <StatCard
           title="Pass Rate"
           value={formatPercent(summary?.passRate)}
           icon={RiCheckboxCircleLine}
+          iconTint="green"
         />
-        <StatCard title="Failures" value={totalFailures} icon={RiCloseCircleLine} />
+        <StatCard title="Failures" value={totalFailures} icon={RiCloseCircleLine} iconTint="rose" />
       </DashboardGrid>
 
       <DashboardGrid columns={2}>
         <ChartCard title="Duration Over Time">
-          <LineChart
+          <TrendLineChart
             data={summary?.durationTrend ?? []}
             index="date"
             categories={['value']}
             colors={['blue']}
             showLegend={false}
-            yAxisWidth={56}
           />
         </ChartCard>
         <ChartCard title="Pass / Fail Ratio">
-          <BarChart
+          <TrendBarChart
             data={summary?.passFailTrend ?? []}
             index="date"
             categories={['passed', 'failed']}
@@ -95,7 +97,7 @@ export function TestRunDashboard() {
               cell: (info) => (
                 <button
                   onClick={() => navigate(`/test-runs/${info.row.original.id}`)}
-                  style={{ color: '#2563eb', fontWeight: 500, fontSize: '0.875rem' }}
+                  className="text-sm font-medium text-brand-500 hover:text-brand-600 transition-colors"
                 >
                   Detail
                 </button>

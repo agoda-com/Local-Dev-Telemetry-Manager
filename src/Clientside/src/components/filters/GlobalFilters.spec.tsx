@@ -23,9 +23,9 @@ test('renders environment toggle tabs', async ({ mount }) => {
   const component = await mount(
     <GlobalFilters filters={defaultFilters} options={sampleOptions} onFiltersChange={() => {}} />,
   );
-  await expect(component.getByRole('tab', { name: 'All' })).toBeVisible();
-  await expect(component.getByRole('tab', { name: 'Local' })).toBeVisible();
-  await expect(component.getByRole('tab', { name: 'CI' })).toBeVisible();
+  await expect(component.getByRole('button', { name: 'All', exact: true })).toBeVisible();
+  await expect(component.getByRole('button', { name: 'Local', exact: true })).toBeVisible();
+  await expect(component.getByRole('button', { name: 'CI', exact: true })).toBeVisible();
 });
 
 test('renders project select placeholder', async ({ mount }) => {

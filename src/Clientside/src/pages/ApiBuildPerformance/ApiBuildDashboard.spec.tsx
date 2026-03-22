@@ -47,9 +47,9 @@ test('renders data table with build items', async ({ mount }) => {
 
 test('renders filter controls', async ({ mount }) => {
   const component = await mount(<ApiBuildDashboard />);
-  await expect(component.getByRole('tab', { name: 'All' })).toBeVisible();
-  await expect(component.getByRole('tab', { name: 'Local' })).toBeVisible();
-  await expect(component.getByRole('tab', { name: 'CI' })).toBeVisible();
+  await expect(component.getByRole('button', { name: 'All', exact: true })).toBeVisible();
+  await expect(component.getByRole('button', { name: 'Local', exact: true })).toBeVisible();
+  await expect(component.getByRole('button', { name: 'CI', exact: true })).toBeVisible();
 });
 
 test('screenshot: full dashboard', async ({ mount }) => {

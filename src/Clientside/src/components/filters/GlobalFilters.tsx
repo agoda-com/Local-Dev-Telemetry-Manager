@@ -17,17 +17,19 @@ interface GlobalFiltersProps {
 
 export function GlobalFilters({ filters, options, onFiltersChange }: GlobalFiltersProps) {
   return (
-    <div className="flex flex-wrap items-end gap-4 mb-6">
+    <div className="flex flex-wrap items-center gap-4 mb-8 rounded-2xl bg-white p-4 shadow-card">
       <EnvironmentToggle
         value={filters.environment}
         onChange={(environment) => onFiltersChange({ ...filters, environment })}
       />
 
+      <div className="h-6 w-px bg-slate-200" />
+
       <MultiSelect
         value={filters.platforms}
         onValueChange={(platforms) => onFiltersChange({ ...filters, platforms })}
         placeholder="All Platforms"
-        className="max-w-xs"
+        className="max-w-xs !rounded-xl"
       >
         {(options.platforms ?? []).map((p) => (
           <MultiSelectItem key={p} value={p}>
@@ -40,7 +42,7 @@ export function GlobalFilters({ filters, options, onFiltersChange }: GlobalFilte
         value={filters.projectName}
         onValueChange={(projectName) => onFiltersChange({ ...filters, projectName })}
         placeholder="All Projects"
-        className="max-w-xs"
+        className="max-w-xs !rounded-xl"
       >
         {(options.projects ?? []).map((p) => (
           <SelectItem key={p} value={p}>
@@ -53,7 +55,7 @@ export function GlobalFilters({ filters, options, onFiltersChange }: GlobalFilte
         value={filters.dateRange}
         onValueChange={(dateRange) => onFiltersChange({ ...filters, dateRange })}
         placeholder="Date Range"
-        className="max-w-[10rem]"
+        className="max-w-[10rem] !rounded-xl"
       >
         <SelectItem value="7d">Last 7 days</SelectItem>
         <SelectItem value="30d">Last 30 days</SelectItem>

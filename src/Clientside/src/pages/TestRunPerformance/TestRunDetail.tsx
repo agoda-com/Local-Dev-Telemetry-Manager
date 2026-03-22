@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, Text, Badge } from '@tremor/react';
+import { Badge } from '@tremor/react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { DashboardGrid } from '../../components/layout/DashboardGrid';
@@ -42,7 +42,11 @@ const testCaseColumns: ColumnDef<TestCaseItem, unknown>[] = [
     cell: (info) => {
       const msg = info.getValue() as string | null;
       if (!msg) return null;
-      return <Text title={msg}>{msg.length > 80 ? `${msg.slice(0, 80)}…` : msg}</Text>;
+      return (
+        <span className="text-sm text-rose-500" title={msg}>
+          {msg.length > 80 ? `${msg.slice(0, 80)}…` : msg}
+        </span>
+      );
     },
   },
 ];
@@ -96,7 +100,10 @@ export function TestRunDetail() {
         subtitle={`${detail.testRunner} · ${detail.executionEnvironment}`}
       />
 
-      <Link to="/test-runs" style={{ color: '#2563eb', fontSize: '0.875rem', fontWeight: 500 }}>
+      <Link
+        to="/test-runs"
+        className="inline-flex items-center gap-1 text-sm font-medium text-brand-500 hover:text-brand-600 transition-colors mb-6"
+      >
         ← Back to runs
       </Link>
 
@@ -121,20 +128,22 @@ export function TestRunDetail() {
         </ChartCard>
       )}
 
-      <ChartCard title="All Test Cases">
-        <StatusFilterBar current={statusFilter} onChange={setStatusFilter} />
-        <DataTable columns={testCaseColumns} data={filteredCases} />
-      </ChartCard>
+      <div className="mt-6">
+        <ChartCard title="All Test Cases">
+          <StatusFilterBar current={statusFilter} onChange={setStatusFilter} />
+          <DataTable columns={testCaseColumns} data={filteredCases} />
+        </ChartCard>
+      </div>
     </>
   );
 }
 
 function MetadataCard({ label, value }: { label: string; value: string }) {
   return (
-    <Card>
-      <Text>{label}</Text>
-      <p style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: '0.25rem' }}>{value}</p>
-    </Card>
+    <div className="rounded-2xl bg-white p-6 shadow-card hover:shadow-card-hover transition-shadow duration-200">
+      <p className="text-[11px] font-medium uppercase tracking-[0.05em] text-slate-400">{label}</p>
+      <p className="mt-2.5 text-lg font-light text-slate-700">{value}</p>
+    </div>
   );
 }
 
@@ -147,21 +156,16 @@ function StatusFilterBar({
 }) {
   const options = ['all', 'passed', 'failed', 'skipped'];
   return (
-    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+    <div className="inline-flex rounded-xl bg-slate-100 p-1 mb-4">
       {options.map((opt) => (
         <button
           key={opt}
           onClick={() => onChange(opt)}
-          style={{
-            padding: '0.25rem 0.75rem',
-            borderRadius: '0.375rem',
-            fontSize: '0.875rem',
-            fontWeight: current === opt ? 600 : 400,
-            backgroundColor: current === opt ? '#2563eb' : '#f3f4f6',
-            color: current === opt ? '#fff' : '#374151',
-            border: 'none',
-            cursor: 'pointer',
-          }}
+          className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-150 ${
+            current === opt
+              ? 'bg-white text-slate-700 shadow-sm'
+              : 'text-slate-400 hover:text-slate-600'
+          }`}
         >
           {opt.charAt(0).toUpperCase() + opt.slice(1)}
         </button>

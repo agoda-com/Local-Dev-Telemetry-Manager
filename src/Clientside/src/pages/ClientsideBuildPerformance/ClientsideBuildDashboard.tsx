@@ -1,10 +1,11 @@
-import { LineChart, BarChart } from '@tremor/react';
 import { RiFlashlightLine, RiRefreshLine, RiLoaderLine, RiBarChartLine } from '@remixicon/react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { DashboardGrid } from '../../components/layout/DashboardGrid';
 import { StatCard } from '../../components/cards/StatCard';
 import { ChartCard } from '../../components/cards/ChartCard';
+import { TrendLineChart } from '../../components/charts/TrendLineChart';
+import { TrendBarChart } from '../../components/charts/TrendBarChart';
 import { GlobalFilters } from '../../components/filters/GlobalFilters';
 import { DataTable } from '../../components/tables/DataTable';
 import { useFilters } from '../../hooks/useFilters';
@@ -47,16 +48,19 @@ export function ClientsideBuildDashboard() {
           title="Hot Reload %"
           value={formatPercent(data?.hotReloadPercent != null ? data.hotReloadPercent / 100 : null)}
           icon={RiFlashlightLine}
+          iconTint="green"
         />
         <StatCard
           title="Avg Hot Reload"
           value={formatMs(data?.avgHotReloadTimeMs)}
           icon={RiRefreshLine}
+          iconTint="green"
         />
         <StatCard
           title="Avg Full Reload"
           value={formatMs(data?.avgFullReloadTimeMs)}
           icon={RiLoaderLine}
+          iconTint="amber"
         />
         <StatCard
           title="Total Reloads Today"
@@ -67,7 +71,7 @@ export function ClientsideBuildDashboard() {
 
       <DashboardGrid columns={2}>
         <ChartCard title="Reload Count Over Time">
-          <BarChart
+          <TrendBarChart
             data={data?.reloadCountTrend ?? []}
             index="date"
             categories={['hotReloads', 'fullReloads']}
@@ -76,12 +80,11 @@ export function ClientsideBuildDashboard() {
           />
         </ChartCard>
         <ChartCard title="Reload Time Over Time">
-          <LineChart
+          <TrendLineChart
             data={data?.reloadTimeTrend ?? []}
             index="date"
             categories={['avgHotTimeMs', 'avgFullTimeMs']}
             colors={['emerald', 'blue']}
-            yAxisWidth={56}
           />
         </ChartCard>
       </DashboardGrid>
