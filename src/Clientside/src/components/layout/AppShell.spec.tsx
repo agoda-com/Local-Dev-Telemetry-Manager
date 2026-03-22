@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/experimental-ct-react';
 import { AppShell } from './AppShell';
 
-test('renders header title', async ({ mount }) => {
+test('renders header logo', async ({ mount }) => {
   const component = await mount(
     <AppShell>
       <div>Content</div>
     </AppShell>,
     { hooksConfig: { enableRouting: true } },
   );
-  await expect(component.getByText('DX')).toBeVisible();
+  await expect(component.getByRole('img', { name: 'DX Telemetry' })).toBeVisible();
 });
 
 test('renders all navigation tabs', async ({ mount }) => {

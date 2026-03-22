@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import logo from '../../DevExSml.png';
+import logo from '../../assets/dx-telemetry-logo-header.svg';
 
 const TABS = [
   { name: 'Test Runs', path: '/test-runs' },
@@ -20,9 +20,8 @@ export function AppShell({ children }: AppShellProps) {
     <div className="min-h-screen" style={{ backgroundColor: '#f4f6f9' }}>
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-screen-2xl mx-auto px-8">
-          <div className="flex items-center gap-3 pt-4 pb-3">
-            <img src={logo} alt="DX" className="h-8 w-8 object-contain" />
-            <span className="text-[17px] font-semibold tracking-tight text-slate-800">DX</span>
+          <div className="flex items-center gap-3 pt-3 pb-2">
+            <img src={logo} alt="DX Telemetry" className="h-9 w-auto object-contain" />
           </div>
           <nav className="flex gap-1 -mb-px">
             {TABS.map((t) => {
