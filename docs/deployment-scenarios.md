@@ -117,6 +117,45 @@ env:
 
 ---
 
+## Scenario C: SQLite-only Docker Compose (ultra-simple local setup)
+
+- Runs only the app container.
+- Uses SQLite file storage inside a mounted Docker volume.
+- Best for solo usage, demos, and very small temporary setups.
+
+```mermaid
+flowchart LR
+  DevMachines["Developer machines"] -->|HTTP metrics| API["DevExTelemetry API<br/>Docker container"]
+  API --> SQLITE[("SQLite DB file<br/>mounted volume")]
+```
+
+### Example `docker-compose.yml`
+
+```yaml
+services:
+  app:
+    image: agoda/devex-telemetry:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - telemetry-data:/app/data
+    environment:
+      # No POSTGRES_CONNECTION_STRING => app falls back to SQLite
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/devex-telemetry.db
+
+volumes:
+  telemetry-data:
+```
+
+### Pros
+- Simplest possible deployment
+- No separate database service required
+
+### Cons
+- Not suitable for multi-instance scaling
+- Lower durability/performance characteristics vs managed PostgreSQL
+
+
 ## Pointing Clients at Your Deployment
 
 Compilation/test clients route as follows:
