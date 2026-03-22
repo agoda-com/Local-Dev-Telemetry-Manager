@@ -91,6 +91,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         if (disposing)
         {
             _sqliteConnection?.Dispose();
+
+            if (_pgDatabaseName != null)
+                PostgresTestServer.DropDatabaseAsync(_pgDatabaseName).GetAwaiter().GetResult();
         }
     }
 }

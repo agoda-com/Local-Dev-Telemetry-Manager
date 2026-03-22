@@ -92,9 +92,17 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TelemetryDbContext>();
     if (db.Database.ProviderName?.Contains("Sqlite") == true)
+    {
         db.Database.Migrate();
+    }
     else
+    {
+        // EnsureCreated() is used for PostgreSQL as an MVP approach since the schema is
+        // simple and there are no existing PostgreSQL databases to migrate. Once PostgreSQL
+        // becomes a first-class long-term provider, this should be replaced with a dedicated
+        // set of PostgreSQL migrations (separate migration assembly) and db.Database.Migrate().
         db.Database.EnsureCreated();
+    }
 }
 
 if (app.Environment.IsDevelopment())
