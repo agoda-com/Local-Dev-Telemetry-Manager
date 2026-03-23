@@ -123,6 +123,10 @@ This is useful when DNS changes aren’t available yet. Your IT support team can
 
 See [docs/deployment-scenarios.md](docs/deployment-scenarios.md) for concrete deployment topologies, client routing examples, and markdown diagrams.
 
+## DB Performance Testing
+
+See [docs/db-perf-tests.md](docs/db-perf-tests.md) for manual DB performance test workflow, seed controls, and artifact outputs.
+
 ## Development
 
 ### Prerequisites
