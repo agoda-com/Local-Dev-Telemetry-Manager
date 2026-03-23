@@ -12,10 +12,18 @@ on:
           - both
           - sqlite
           - postgres
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/db-perf-manual.yml'
+      - 'src/Agoda.DevExTelemetry.DbPerfTests/**'
+      - 'src/Agoda.DevExTelemetry.Core/**'
+      - 'src/Agoda.DevExTelemetry.WebApi/**'
+      - 'docs/db-perf-tests.md'
 
 jobs:
   sqlite:
-    if: ${{ github.event.inputs.provider == 'both' || github.event.inputs.provider == 'sqlite' }}
+    if: ${{ github.event_name == 'pull_request' || github.event.inputs.provider == 'both' || github.event.inputs.provider == 'sqlite' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +46,7 @@ jobs:
             **/sqlite-perf.trx
 
   postgres:
-    if: ${{ github.event.inputs.provider == 'both' || github.event.inputs.provider == 'postgres' }}
+    if: ${{ github.event_name == 'pull_request' || github.event.inputs.provider == 'both' || github.event.inputs.provider == 'postgres' }}
     runs-on: ubuntu-latest
     services:
       postgres:
