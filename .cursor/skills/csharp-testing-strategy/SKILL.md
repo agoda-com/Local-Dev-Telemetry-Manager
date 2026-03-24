@@ -5,6 +5,16 @@ description: Enforces the Honeycomb testing strategy for C# services. Prefer bla
 
 # C# Testing Strategy
 
+## Requirement levels (RFC 2119)
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in RFC 2119.
+
+Interpretation for contributors and reviewers:
+- **MUST / MUST NOT**: non-negotiable requirement (blocking)
+- **SHOULD / SHOULD NOT**: strong default; deviations require explicit rationale
+- **MAY / OPTIONAL**: context-dependent choice
+
+
 This skill follows the **Honeycomb testing model**: the bulk of tests should be integration tests that exercise real behavior through the HTTP boundary, not unit tests of internal classes. Unit tests are reserved for pure helper/utility methods with no dependencies.
 
 ## Test Pyramid vs Honeycomb

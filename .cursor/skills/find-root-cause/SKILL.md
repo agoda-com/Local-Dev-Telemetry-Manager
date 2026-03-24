@@ -5,6 +5,16 @@ description: Enforces root-cause analysis before fixing bugs or resolving errors
 
 # Find the Root Cause
 
+## Requirement levels (RFC 2119)
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in RFC 2119.
+
+Interpretation for contributors and reviewers:
+- **MUST / MUST NOT**: non-negotiable requirement (blocking)
+- **SHOULD / SHOULD NOT**: strong default; deviations require explicit rationale
+- **MAY / OPTIONAL**: context-dependent choice
+
+
 ## Core Rule
 
 **Never patch symptoms. Always find and fix the root cause.** Before writing any fix, trace the problem to its origin. A fix that suppresses the symptom without addressing why it happened will fail again — or worse, hide the real issue until it causes broader damage.

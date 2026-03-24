@@ -5,6 +5,16 @@ description: Enforces efficient API endpoint design when serving data to browser
 
 # API Response Design for Browser Clients
 
+## Requirement levels (RFC 2119)
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in RFC 2119.
+
+Interpretation for contributors and reviewers:
+- **MUST / MUST NOT**: non-negotiable requirement (blocking)
+- **SHOULD / SHOULD NOT**: strong default; deviations require explicit rationale
+- **MAY / OPTIONAL**: context-dependent choice
+
+
 ## Rule
 
 **Shape data on the server to match what the page needs. Minimise the number of HTTP requests per page.**

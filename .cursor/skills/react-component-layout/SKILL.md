@@ -5,6 +5,16 @@ description: Enforces that React component code mirrors the visual layout of the
 
 # React Component Layout
 
+## Requirement levels (RFC 2119)
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in RFC 2119.
+
+Interpretation for contributors and reviewers:
+- **MUST / MUST NOT**: non-negotiable requirement (blocking)
+- **SHOULD / SHOULD NOT**: strong default; deviations require explicit rationale
+- **MAY / OPTIONAL**: context-dependent choice
+
+
 Structure React code so that reading it feels like looking at the UI. A developer should be able to glance at the JSX and immediately see the same major sections, divisions, and hierarchy that appear on screen.
 
 ## Core Principles

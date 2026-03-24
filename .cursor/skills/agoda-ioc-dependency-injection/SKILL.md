@@ -5,6 +5,16 @@ description: Enforces use of Agoda.IoC attribute-based dependency injection regi
 
 # Agoda.IoC for Dependency Injection
 
+## Requirement levels (RFC 2119)
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in RFC 2119.
+
+Interpretation for contributors and reviewers:
+- **MUST / MUST NOT**: non-negotiable requirement (blocking)
+- **SHOULD / SHOULD NOT**: strong default; deviations require explicit rationale
+- **MAY / OPTIONAL**: context-dependent choice
+
+
 Use [Agoda.IoC](https://github.com/agoda-com/Agoda.IoC) attribute-based registration in all C# **application** projects. Do NOT use it in **library/SDK** projects — libraries should not force a DI framework on their consumers.
 
 ## Why Attribute-Based Registration

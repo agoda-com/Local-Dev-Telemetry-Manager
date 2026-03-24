@@ -5,6 +5,16 @@ description: Prevents modification of existing tests and test data unless behavi
 
 # Preserve Existing Tests
 
+## Requirement levels (RFC 2119)
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in RFC 2119.
+
+Interpretation for contributors and reviewers:
+- **MUST / MUST NOT**: non-negotiable requirement (blocking)
+- **SHOULD / SHOULD NOT**: strong default; deviations require explicit rationale
+- **MAY / OPTIONAL**: context-dependent choice
+
+
 ## Core Rule
 
 **Never modify existing tests or test data.** If existing tests fail after your changes, that is a signal you may have introduced a bug — not that the tests are wrong.
