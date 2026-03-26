@@ -33,21 +33,6 @@ These are the client libraries that instrument developer tooling and send teleme
 | Jest reporter | npm | `POST /jest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |
 | Vitest reporter | npm | `POST /vitest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |
 
-## Ingest Endpoints
-
-| Endpoint | Payload Type |
-|---|---|
-| `POST /dotnet` | .NET MSBuild compile, ASP.NET startup, first response |
-| `POST /dotnet/nunit` | NUnit / xUnit test results |
-| `POST /junit` | JUnit test results |
-| `POST /jest` | Jest test results |
-| `POST /vitest` | Vitest test results |
-| `POST /scala/scalatest` | ScalaTest results (gzip supported) |
-| `POST /webpack` | Webpack build metrics |
-| `POST /vite` | Vite build / HMR metrics |
-| `POST /gradletalaiot` | Gradle Talaiot build metrics |
-| `POST /testdata/junit` | JUnit XML multipart upload |
-
 ## Dashboard Pages
 
 - **Test Run Performance** — pass rates, durations, per-test-case drill-down
@@ -64,8 +49,6 @@ export POSTGRES_CONNECTION_STRING='Host=localhost;Port=5432;Database=devex_telem
 
 Notes:
 - If `POSTGRES_CONNECTION_STRING` is not set, the app uses SQLite.
-- Current PostgreSQL initialization uses `EnsureCreated()` as an MVP path.
-- For long-term schema evolution, move to dedicated PostgreSQL migrations and `db.Database.Migrate()`.
 
 ## Docker Usage
 
