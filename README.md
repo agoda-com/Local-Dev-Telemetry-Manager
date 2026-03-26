@@ -33,12 +33,6 @@ These are the client libraries that instrument developer tooling and send teleme
 | Jest reporter | npm | `POST /jest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |
 | Vitest reporter | npm | `POST /vitest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |
 
-## Dashboard Pages
-
-- **Test Run Performance** — pass rates, durations, per-test-case drill-down
-- **API Build Performance** — compile, startup, and first response times
-- **Clientside Build Performance** — hot reload vs full build metrics
-
 ## PostgreSQL Support
 
 The API supports PostgreSQL when `POSTGRES_CONNECTION_STRING` is provided.
