@@ -116,6 +116,8 @@ npm run dev
 
 The dev server starts at `http://localhost:5173` and proxies `/api` requests to the backend.
 
+I wrote more about this exact setup in [Bridging Worlds: Making .NET BFF and React/Vite Play Nice in Development](https://medium.com/beer-and-servers-dont-mix/bridging-worlds-making-net-bff-and-react-vite-play-nice-in-development-b0f7b9311790).
+
 ### Running Tests
 
 ```bash
