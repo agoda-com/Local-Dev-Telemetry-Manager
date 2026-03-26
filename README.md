@@ -116,6 +116,8 @@ npm run dev
 
 The dev server starts at `http://localhost:5173` and proxies `/api` requests to the backend.
 
+For local development, this means the React/Vite app can call API routes without CORS pain or hard-coded environment switching—frontend and backend feel like one system while still running as separate processes. It keeps the feedback loop fast (UI hot reload + live API changes) and mirrors production routing behavior more closely than static mocks. I wrote more about this pattern on [Beer and Servers Don’t Mix](https://medium.com/beer-and-servers-dont-mix).
+
 ### Running Tests
 
 ```bash
