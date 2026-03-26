@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/dx-telemetry-logo-header.svg" alt="DX Telemetry Manager logo" width="720" />
+  <img src="docs/assets/dx-telemetry-logo-header.svg" alt="DX Telemetry Manager logo" width="560" />
 </p>
 
 # DX Telemetry Manager
