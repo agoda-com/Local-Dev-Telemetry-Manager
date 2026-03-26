@@ -14,18 +14,6 @@ This is an internal tool designed to be deployed within your organization's infr
 - **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 3, Tremor, Recharts
 - **Container:** Docker image available at `agoda/devex-telemetry`
 
-## Project Structure
-
-```text
-src/
-├── Agoda.DevExTelemetry.WebApi/        # ASP.NET Core API (controllers, Program.cs)
-├── Agoda.DevExTelemetry.Core/          # Domain layer (entities, DTOs, services, DbContext)
-├── Agoda.DevExTelemetry.IntegrationTests/
-├── Agoda.DevExTelemetry.UnitTests/
-├── Clientside/                         # React SPA (Vite + Tailwind + Tremor)
-└── Agoda.DevExTelemetry.sln
-```
-
 ## Telemetry Clients
 
 These are the client libraries that instrument developer tooling and send telemetry to this server:
