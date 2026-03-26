@@ -14,18 +14,6 @@ This is an internal tool designed to be deployed within your organization's infr
 - **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 3, Tremor, Recharts
 - **Container:** Docker image available at `agoda/devex-telemetry`
 
-## Project Structure
-
-```text
-src/
-├── Agoda.DevExTelemetry.WebApi/        # ASP.NET Core API (controllers, Program.cs)
-├── Agoda.DevExTelemetry.Core/          # Domain layer (entities, DTOs, services, DbContext)
-├── Agoda.DevExTelemetry.IntegrationTests/
-├── Agoda.DevExTelemetry.UnitTests/
-├── Clientside/                         # React SPA (Vite + Tailwind + Tremor)
-└── Agoda.DevExTelemetry.sln
-```
-
 ## Telemetry Clients
 
 These are the client libraries that instrument developer tooling and send telemetry to this server:
@@ -45,27 +33,6 @@ These are the client libraries that instrument developer tooling and send teleme
 | Jest reporter | npm | `POST /jest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |
 | Vitest reporter | npm | `POST /vitest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |
 
-## Ingest Endpoints
-
-| Endpoint | Payload Type |
-|---|---|
-| `POST /dotnet` | .NET MSBuild compile, ASP.NET startup, first response |
-| `POST /dotnet/nunit` | NUnit / xUnit test results |
-| `POST /junit` | JUnit test results |
-| `POST /jest` | Jest test results |
-| `POST /vitest` | Vitest test results |
-| `POST /scala/scalatest` | ScalaTest results (gzip supported) |
-| `POST /webpack` | Webpack build metrics |
-| `POST /vite` | Vite build / HMR metrics |
-| `POST /gradletalaiot` | Gradle Talaiot build metrics |
-| `POST /testdata/junit` | JUnit XML multipart upload |
-
-## Dashboard Pages
-
-- **Test Run Performance** — pass rates, durations, per-test-case drill-down
-- **API Build Performance** — compile, startup, and first response times
-- **Clientside Build Performance** — hot reload vs full build metrics
-
 ## PostgreSQL Support
 
 The API supports PostgreSQL when `POSTGRES_CONNECTION_STRING` is provided.
@@ -76,8 +43,6 @@ export POSTGRES_CONNECTION_STRING='Host=localhost;Port=5432;Database=devex_telem
 
 Notes:
 - If `POSTGRES_CONNECTION_STRING` is not set, the app uses SQLite.
-- Current PostgreSQL initialization uses `EnsureCreated()` as an MVP path.
-- For long-term schema evolution, move to dedicated PostgreSQL migrations and `db.Database.Migrate()`.
 
 ## Docker Usage
 
@@ -151,18 +116,11 @@ npm run dev
 
 The dev server starts at `http://localhost:5173` and proxies `/api` requests to the backend.
 
+I wrote more about this exact setup in [Bridging Worlds: Making .NET BFF and React/Vite Play Nice in Development](https://medium.com/beer-and-servers-dont-mix/bridging-worlds-making-net-bff-and-react-vite-play-nice-in-development-b0f7b9311790).
+
 ### Running Tests
 
 ```bash
 cd src
 dotnet test
 ```
-
-## CI/CD
-
-Pushes to `main` trigger automatic deployment to Azure App Service via GitHub Actions.
-
-| Workflow | Trigger | Purpose |
-|---|---|---|
-| `build.yml` | Pull requests to main | Build + test validation |
-| `deploy.yml` | Push to main | Build + deploy to Azure |
