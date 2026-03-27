@@ -1,0 +1,227 @@
+name: DB Perf Tests (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: "Database provider to benchmark"
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - sqlite
+          - postgres
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/db-perf-manual.yml'
+      - 'src/Agoda.DevExTelemetry.DbPerfTests/**'
+      - 'src/Agoda.DevExTelemetry.Core/**'
+      - 'src/Agoda.DevExTelemetry.WebApi/**'
+      - 'docs/db-perf-tests.md'
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  sqlite:
+    if: ${{ github.event_name == 'pull_request' || github.event.inputs.provider == 'both' || github.event.inputs.provider == 'sqlite' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore src/Agoda.DevExTelemetry.DbPerfTests/Agoda.DevExTelemetry.DbPerfTests.csproj
+      - name: Run SQLite perf tests
+        env:
+          PERF_DB_PROVIDER: sqlite
+        run: dotnet test src/Agoda.DevExTelemetry.DbPerfTests/Agoda.DevExTelemetry.DbPerfTests.csproj --configuration Release --logger "trx;LogFileName=sqlite-perf.trx"
+      - name: Upload SQLite artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: sqlite-db-perf-results
+          path: |
+            **/db-perf-results/*.json
+            **/sqlite-perf.trx
+
+  postgres:
+    if: ${{ github.event_name == 'pull_request' || github.event.inputs.provider == 'both' || github.event.inputs.provider == 'postgres' }}
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore src/Agoda.DevExTelemetry.DbPerfTests/Agoda.DevExTelemetry.DbPerfTests.csproj
+      - name: Run PostgreSQL perf tests
+        env:
+          PERF_DB_PROVIDER: postgres
+          PERF_POSTGRES_CONNECTION: Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=postgres
+        run: dotnet test src/Agoda.DevExTelemetry.DbPerfTests/Agoda.DevExTelemetry.DbPerfTests.csproj --configuration Release --logger "trx;LogFileName=postgres-perf.trx"
+      - name: Upload PostgreSQL artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: postgres-db-perf-results
+          path: |
+            **/db-perf-results/*.json
+            **/postgres-perf.trx
+
+  pr-comment:
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: [sqlite, postgres]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download current run SQLite artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: sqlite-db-perf-results
+          path: artifacts/current/sqlite
+
+      - name: Download current run PostgreSQL artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: postgres-db-perf-results
+          path: artifacts/current/postgres
+
+      - name: Build performance comment body
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_FILE: db-perf-manual.yml
+          CURRENT_RUN_ID: ${{ github.run_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python3 - <<'PY'
+          import os, json, re, requests, zipfile, io
+          from pathlib import Path
+
+          token = os.environ['GITHUB_TOKEN']
+          repo = os.environ['REPO']
+          workflow_file = os.environ['WORKFLOW_FILE']
+          run_id = int(os.environ['CURRENT_RUN_ID'])
+          pr_number = int(os.environ['PR_NUMBER'])
+          api = 'https://api.github.com'
+          H = {'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'}
+
+          def load_current_results(base_dir):
+            results = {}
+            for p in Path(base_dir).rglob('endpoint-timings-*.json'):
+              data = json.loads(p.read_text())
+              for row in data:
+                key = (row['Engine'], row['Endpoint'])
+                results[key] = row
+            return results
+
+          def find_latest_main_success_run_id():
+            url = f"{api}/repos/{repo}/actions/workflows/{workflow_file}/runs"
+            params = {'branch': 'main', 'status': 'completed', 'per_page': 20}
+            r = requests.get(url, headers=H, params=params, timeout=30)
+            if r.status_code != 200:
+              return None
+            runs = r.json().get('workflow_runs', [])
+            for run in runs:
+              if run.get('conclusion') == 'success':
+                rid = run.get('id')
+                if rid and rid != run_id:
+                  return rid
+            return None
+
+          def download_artifact_json_map(run_id, artifact_name):
+            url = f"{api}/repos/{repo}/actions/runs/{run_id}/artifacts"
+            r = requests.get(url, headers=H, timeout=30)
+            if r.status_code != 200:
+              return {}
+            artifacts = r.json().get('artifacts', [])
+            target = next((a for a in artifacts if a.get('name') == artifact_name), None)
+            if not target:
+              return {}
+            zurl = f"{api}/repos/{repo}/actions/artifacts/{target['id']}/zip"
+            zr = requests.get(zurl, headers=H, timeout=60)
+            if zr.status_code != 200:
+              return {}
+            out = {}
+            with zipfile.ZipFile(io.BytesIO(zr.content)) as zf:
+              for name in zf.namelist():
+                if 'endpoint-timings-' in name and name.endswith('.json'):
+                  data = json.loads(zf.read(name))
+                  for row in data:
+                    out[(row['Engine'], row['Endpoint'])] = row
+            return out
+
+          current = {}
+          current.update(load_current_results('artifacts/current/sqlite'))
+          current.update(load_current_results('artifacts/current/postgres'))
+
+          baseline_run = find_latest_main_success_run_id()
+          baseline = {}
+          if baseline_run:
+            baseline.update(download_artifact_json_map(baseline_run, 'sqlite-db-perf-results'))
+            baseline.update(download_artifact_json_map(baseline_run, 'postgres-db-perf-results'))
+
+          slug = '<!-- db-perf-report -->'
+          lines = [slug, '## DB Perf Report', '']
+          lines.append(f"Run: `{run_id}`")
+          if baseline_run:
+            lines.append(f"Baseline (latest successful main run): `{baseline_run}`")
+          else:
+            lines.append('Baseline: _not available yet (first run or no successful main artifact found)_')
+          lines.append('')
+
+          if not current:
+            lines.append('_No endpoint timing JSON artifacts found in this run._')
+          else:
+            lines.append('| Engine | Endpoint | Mean ms | p95 ms | Δ p95 vs main |')
+            lines.append('|---|---|---:|---:|---:|')
+            for key in sorted(current.keys()):
+              row = current[key]
+              mean_ms = row.get('MeanMs', 0)
+              p95_ms = row.get('P95Ms', 0)
+              delta = 'n/a'
+              b = baseline.get(key)
+              if b and b.get('P95Ms'):
+                bp95 = b['P95Ms']
+                if bp95:
+                  pct = ((p95_ms - bp95) / bp95) * 100
+                  delta = f"{pct:+.1f}%"
+              lines.append(f"| {row['Engine']} | `{row['Endpoint']}` | {mean_ms:.2f} | {p95_ms:.2f} | {delta} |")
+
+          body = '\n'.join(lines)
+
+          comments_url = f"{api}/repos/{repo}/issues/{pr_number}/comments"
+          existing = requests.get(comments_url, headers=H, timeout=30).json()
+          target = None
+          for c in existing:
+            if isinstance(c.get('body'), str) and slug in c['body']:
+              target = c
+              break
+
+          if target:
+            u = f"{api}/repos/{repo}/issues/comments/{target['id']}"
+            requests.patch(u, headers=H, json={'body': body}, timeout=30)
+          else:
+            requests.post(comments_url, headers=H, json={'body': body}, timeout=30)
+          PY
