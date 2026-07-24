@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Agoda.DevExTelemetry.Core.Models.Entities;
 using Agoda.DevExTelemetry.Core.Models.Ingest;
 using Agoda.DevExTelemetry.Core.Services;
+using Agoda.DevExTelemetry.WebApi.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Agoda.DevExTelemetry.WebApi.Controllers;
@@ -15,15 +17,27 @@ public class GradleController : ControllerBase
     private readonly IBackgroundTaskQueue<IngestBuildMetricWorkItem> _queue;
     private readonly IEnvironmentDetector _environmentDetector;
     private readonly IBuildCategoryClassifier _classifier;
+    private readonly IJvmBuildMetricIngestService _jvmBuildMetricIngestService;
 
     public GradleController(
         IBackgroundTaskQueue<IngestBuildMetricWorkItem> queue,
         IEnvironmentDetector environmentDetector,
-        IBuildCategoryClassifier classifier)
+        IBuildCategoryClassifier classifier,
+        IJvmBuildMetricIngestService jvmBuildMetricIngestService)
     {
         _queue = queue;
         _environmentDetector = environmentDetector;
         _classifier = classifier;
+        _jvmBuildMetricIngestService = jvmBuildMetricIngestService;
+    }
+
+    [HttpPost("gradle")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> IngestBuildMetric([FromBody] GradleBuildMetricPayload payload)
+    {
+        var error = await _jvmBuildMetricIngestService.QueueGradleAsync(payload);
+        return error is null ? Ok() : BadRequest(new { error });
     }
 
     [HttpPost("gradletalaiot")]
