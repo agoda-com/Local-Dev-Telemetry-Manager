@@ -13,16 +13,24 @@ namespace Agoda.DevExTelemetry.IntegrationTests;
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly DatabaseProvider _provider;
+    private readonly bool _enableRawPayloadStorage;
     private SqliteConnection? _sqliteConnection;
     private string? _pgDatabaseName;
 
-    public CustomWebApplicationFactory(DatabaseProvider provider = DatabaseProvider.Sqlite)
+    public CustomWebApplicationFactory(
+        DatabaseProvider provider = DatabaseProvider.Sqlite,
+        bool enableRawPayloadStorage = false)
     {
         _provider = provider;
+        _enableRawPayloadStorage = enableRawPayloadStorage;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseSetting(
+            "DataRetention:EnableRawPayloadStorage",
+            _enableRawPayloadStorage.ToString());
+
         if (_provider == DatabaseProvider.Sqlite)
         {
             _sqliteConnection = new SqliteConnection("Data Source=:memory:");

@@ -29,6 +29,8 @@ These are the client libraries that instrument developer tooling and send teleme
 | `agoda-devfeedback-rsbuild` | npm | `POST /vite` | [devfeedback-js](https://github.com/agoda-com/devfeedback-js) |
 | JUnit reporter | Maven | `POST /junit` | [java-local-metrics](https://github.com/agoda-com/java-local-metrics) |
 | ScalaTest reporter | sbt | `POST /scala/scalatest` | [java-local-metrics](https://github.com/agoda-com/java-local-metrics) |
+| Gradle build metrics plugin | Gradle | `POST /gradle` | [kotlin-local-metrics](https://github.com/agoda-com/kotlin-local-metrics) |
+| Ktor startup metrics plugin | Gradle | `POST /ktor` | [kotlin-local-metrics](https://github.com/agoda-com/kotlin-local-metrics) |
 | Talaiot Gradle plugin | Gradle | `POST /gradletalaiot` | [Talaiot](https://github.com/cdsap/Talaiot) (external) |
 | Jest reporter | npm | `POST /jest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |
 | Vitest reporter | npm | `POST /vitest` | [testresults-collector](https://github.com/agoda-com/testresults-collector) |

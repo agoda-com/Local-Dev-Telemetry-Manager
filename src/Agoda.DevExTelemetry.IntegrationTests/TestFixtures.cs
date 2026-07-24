@@ -279,6 +279,82 @@ public static class TestFixtures
             cacheRatio = "0.75"
         };
 
+    public static object CreateGradleBuildMetricPayload(
+        string type = "Gradle",
+        string? timeTaken = "1842",
+        string? branch = "feature/build-metrics",
+        string? commitSha = "6f9c4bd4a2d0f5cfa3fa8e199cc0c630f56a9898",
+        string? repository = "https://example.com/group/sample-service.git",
+        string? repositoryName = "sample-service") =>
+        new
+        {
+            id = Guid.NewGuid().ToString(),
+            metricsVersion = "0.1.0",
+            userName = "developer",
+            cpuCount = 12,
+            hostname = "workstation",
+            platform = "Linux",
+            os = "Linux 6.8.0 amd64",
+            timeTaken,
+            branch,
+            commitSha,
+            type,
+            projectName = "sample-service",
+            repository,
+            repositoryName,
+            date = "2026-07-23T07:30:00Z",
+            isDebuggerAttached = false,
+            ide = "IntelliJ IDEA",
+            buildKind = "incremental",
+            requestedTasks = new[] { "build" },
+            taskCount = 42,
+            executedTaskCount = 14,
+            upToDateTaskCount = 25,
+            fromCacheTaskCount = 3,
+            failedTaskCount = 0,
+            compileTaskCount = 8,
+            compileTimeMs = 913,
+            taskTimeMs = 3276,
+            projects = new[]
+            {
+                new { projectPath = ":", compileTaskCount = 2, compileTimeMs = 380 },
+                new { projectPath = ":api", compileTaskCount = 6, compileTimeMs = 533 }
+            }
+        };
+
+    public static object CreateKtorPayload(
+        string type = ".KtorStartup",
+        string? timeTaken = "2431",
+        string? branch = "feature/startup-metrics",
+        string? commitSha = "6f9c4bd4a2d0f5cfa3fa8e199cc0c630f56a9898",
+        string? repository = "https://example.com/group/sample-service.git",
+        string? repositoryName = "sample-service",
+        Dictionary<string, string>? tags = null) =>
+        new
+        {
+            id = Guid.NewGuid().ToString(),
+            metricsVersion = "0.1.0",
+            userName = "developer",
+            cpuCount = 12,
+            hostname = "workstation",
+            platform = "Linux",
+            os = "Linux 6.8.0 amd64",
+            timeTaken,
+            branch,
+            commitSha,
+            type,
+            projectName = "sample-service",
+            repository,
+            repositoryName,
+            date = "2026-07-23T07:30:00Z",
+            tags = tags ?? new Dictionary<string, string>
+            {
+                ["team"] = "supply",
+                ["region"] = "apac"
+            },
+            isDebuggerAttached = false
+        };
+
     public static async Task<HttpResponseMessage> PostJsonAsync(HttpClient client, string url, object payload)
     {
         var json = JsonSerializer.Serialize(payload);
