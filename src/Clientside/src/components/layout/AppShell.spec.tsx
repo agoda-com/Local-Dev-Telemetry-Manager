@@ -8,7 +8,9 @@ test('renders header logo', async ({ mount }) => {
     </AppShell>,
     { hooksConfig: { enableRouting: true } },
   );
-  await expect(component.getByRole('img', { name: 'DX Telemetry' })).toBeVisible();
+  const logo = component.getByRole('img', { name: 'DX Telemetry' });
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute('src', /data:image\/svg\+xml|dx-telemetry-logo-header\.svg/);
 });
 
 test('renders all navigation tabs', async ({ mount }) => {
