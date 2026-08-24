@@ -30,10 +30,25 @@ public class WebpackController : ControllerBase
     [HttpPost("webpack")]
     [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> Ingest([FromBody] WebpackPayload payload)
+        => await IngestInternal(payload, "/webpack");
+
+    [HttpPost("rspack")]
+    [RequestSizeLimit(500 * 1024 * 1024)]
+    public async Task<IActionResult> IngestRspack([FromBody] WebpackPayload payload)
+        => await IngestInternal(payload, "/rspack");
+
+    private async Task<IActionResult> IngestInternal(WebpackPayload payload, string sourceEndpoint)
     {
         var platformStr = ((PlatformID)payload.Platform).ToString();
         var environment = _environmentDetector.Detect(
             payload.Hostname, payload.IsDebuggerAttached, platformStr, null);
+
+        var metricType = (payload.Type ?? "webpack").ToLowerInvariant() switch
+        {
+            "rspack" => "rspack",
+            "rsbuild" => "rsbuild",
+            _ => "webpack"
+        };
 
         string? devFeedbackType = null;
         if (payload.DevFeedback?.Any(df =>
@@ -42,7 +57,7 @@ public class WebpackController : ControllerBase
             devFeedbackType = "hmr";
         }
 
-        var (buildCategory, reloadType) = _classifier.Classify("webpack", devFeedbackType);
+        var (buildCategory, reloadType) = _classifier.Classify(metricType, devFeedbackType);
 
         if (!double.TryParse(payload.TimeTaken, NumberStyles.Float | NumberStyles.AllowThousands,
                 CultureInfo.InvariantCulture, out var timeTakenMs) && !string.IsNullOrWhiteSpace(payload.TimeTaken))
@@ -65,6 +80,7 @@ public class WebpackController : ControllerBase
         var metric = new BuildMetric
         {
             Id = payload.Id ?? Guid.NewGuid().ToString(),
+            SessionId = payload.SessionId,
             UserName = payload.UserName ?? string.Empty,
             CpuCount = payload.CpuCount,
             Hostname = payload.Hostname ?? string.Empty,
@@ -75,14 +91,14 @@ public class WebpackController : ControllerBase
             Repository = payload.Repository ?? string.Empty,
             RepositoryName = payload.RepositoryName ?? string.Empty,
             TimeTakenMs = timeTakenMs,
-            MetricType = "webpack",
+            MetricType = metricType,
             BuildCategory = buildCategory,
             ReloadType = reloadType,
             ToolVersion = payload.NodeVersion,
             CommitSha = payload.CommitSha,
             IsDebuggerAttached = payload.IsDebuggerAttached,
             ExecutionEnvironment = environment,
-            SourceEndpoint = "/webpack",
+            SourceEndpoint = sourceEndpoint,
             ExtraData = JsonSerializer.Serialize(extraData)
         };
 
@@ -90,7 +106,7 @@ public class WebpackController : ControllerBase
         {
             BuildMetric = metric,
             RawPayloadJson = JsonSerializer.Serialize(payload),
-            RawPayloadEndpoint = "/webpack",
+            RawPayloadEndpoint = sourceEndpoint,
             RawPayloadContentType = "application/json"
         });
 

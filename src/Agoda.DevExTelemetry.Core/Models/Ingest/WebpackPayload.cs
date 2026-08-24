@@ -7,6 +7,12 @@ public class WebpackPayload
     [JsonPropertyName("id")]
     public string? Id { get; set; }
 
+    [JsonPropertyName("type")]
+    public string? Type { get; set; }
+
+    [JsonPropertyName("sessionId")]
+    public string? SessionId { get; set; }
+
     [JsonPropertyName("userName")]
     public string? UserName { get; set; }
 

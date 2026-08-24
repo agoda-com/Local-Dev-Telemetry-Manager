@@ -195,10 +195,16 @@ public static class TestFixtures
             }).ToList()
         };
 
-    public static object CreateWebpackPayload(bool withHmrFeedback = false, string? id = null) =>
+    public static object CreateWebpackPayload(
+        bool withHmrFeedback = false,
+        string? id = null,
+        string? type = null,
+        string? sessionId = null) =>
         new
         {
             id = id ?? Guid.NewGuid().ToString(),
+            type,
+            sessionId,
             userName = "testuser",
             cpuCount = 8,
             hostname = "dev-workstation",
@@ -222,6 +228,65 @@ public static class TestFixtures
                 ? new[] { new { type = "hmr", timeTaken = "200" } }
                 : Array.Empty<object>()
         };
+
+    public static object CreateCommandPayload(
+        string phase,
+        string? id = null,
+        string? sessionId = null,
+        string command = "vite dev",
+        int exitCode = 0,
+        bool success = true,
+        double timeTaken = 4120,
+        string? signal = null,
+        bool includePrebundled = true,
+        bool? prebundled = true,
+        string? measurementSource = null,
+        Dictionary<string, double>? npmTimers = null,
+        long? spooledAt = null,
+        double? domContentLoadedMs = null,
+        double? firstContentfulPaintMs = null)
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["id"] = id ?? Guid.NewGuid().ToString(),
+            ["sessionId"] = sessionId ?? Guid.NewGuid().ToString(),
+            ["userName"] = "testuser",
+            ["cpuCount"] = 8,
+            ["hostname"] = "dev-workstation",
+            ["platform"] = "Darwin",
+            ["os"] = "23.5.0",
+            ["branch"] = "main",
+            ["projectName"] = "TestProject",
+            ["repository"] = "https://github.com/test/repo",
+            ["repositoryName"] = "test-repo",
+            ["timestamp"] = 1711094400000L,
+            ["builtAt"] = "2026-08-05T03:21:00.000Z",
+            ["totalMemory"] = 16_000_000_000L,
+            ["cpuModels"] = new[] { "Apple M3 Pro" },
+            ["cpuSpeed"] = new[] { 0 },
+            ["nodeVersion"] = "v22.14.0",
+            ["v8Version"] = "12.4.254.21-node.35",
+            ["commitSha"] = "abc123",
+            ["customIdentifier"] = "dev",
+            ["type"] = "command",
+            ["phase"] = phase,
+            ["command"] = command,
+            ["exitCode"] = exitCode,
+            ["success"] = success,
+            ["signal"] = signal,
+            ["timeTaken"] = timeTaken,
+            ["measurementSource"] = measurementSource,
+            ["npmTimers"] = npmTimers,
+            ["spooledAt"] = spooledAt,
+            ["domContentLoadedMs"] = domContentLoadedMs,
+            ["firstContentfulPaintMs"] = firstContentfulPaintMs
+        };
+
+        if (includePrebundled)
+            payload["prebundled"] = prebundled;
+
+        return payload;
+    }
 
     public static object CreateVitePayload(string type = "vite", string? id = null) =>
         new

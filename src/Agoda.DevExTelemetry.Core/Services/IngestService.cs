@@ -33,6 +33,19 @@ public class IngestService : IIngestService
         await _repository.AddBuildMetricAsync(metric);
     }
 
+    public async Task IngestCommandEventAsync(CommandEvent commandEvent, IEnumerable<CommandEventNpmTimer> npmTimers)
+    {
+        commandEvent.ReceivedAt = DateTime.UtcNow;
+
+        if (await _repository.CommandEventExistsAsync(commandEvent.Id))
+        {
+            _logger.LogInformation("Ignoring duplicate CommandEvent with Id={Id}", commandEvent.Id);
+            return;
+        }
+
+        await _repository.AddCommandEventAsync(commandEvent, npmTimers);
+    }
+
     public async Task IngestTestRunAsync(TestRun run, IEnumerable<TestCase> testCases)
     {
         run.ReceivedAt = DateTime.UtcNow;

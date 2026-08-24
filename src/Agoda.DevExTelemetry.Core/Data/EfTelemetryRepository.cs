@@ -22,6 +22,16 @@ public abstract class EfTelemetryRepository : ITelemetryRepository
         await Db.SaveChangesAsync();
     }
 
+    public async Task<bool> CommandEventExistsAsync(string id) =>
+        await Db.CommandEvents.AnyAsync(e => e.Id == id);
+
+    public async Task AddCommandEventAsync(CommandEvent commandEvent, IEnumerable<CommandEventNpmTimer> npmTimers)
+    {
+        Db.CommandEvents.Add(commandEvent);
+        await Db.CommandEventNpmTimers.AddRangeAsync(npmTimers);
+        await Db.SaveChangesAsync();
+    }
+
     public async Task<bool> TestRunExistsAsync(string id) =>
         await Db.TestRuns.AnyAsync(tr => tr.Id == id);
 
@@ -346,6 +356,17 @@ public abstract class EfTelemetryRepository : ITelemetryRepository
 
         await Db.BuildMetrics
             .Where(bm => bm.ReceivedAt < cutoff)
+            .ExecuteDeleteAsync();
+
+        await Db.CommandEventNpmTimers
+            .Where(timer => Db.CommandEvents
+                .Where(evt => evt.ReceivedAt < cutoff)
+                .Select(evt => evt.Id)
+                .Contains(timer.CommandEventId))
+            .ExecuteDeleteAsync();
+
+        await Db.CommandEvents
+            .Where(evt => evt.ReceivedAt < cutoff)
             .ExecuteDeleteAsync();
 
         await Db.RawPayloads

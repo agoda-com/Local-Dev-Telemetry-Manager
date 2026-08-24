@@ -68,6 +68,7 @@ public class ViteController : ControllerBase
         var metric = new BuildMetric
         {
             Id = payload.Id ?? Guid.NewGuid().ToString(),
+            SessionId = payload.SessionId,
             UserName = payload.UserName ?? string.Empty,
             CpuCount = payload.CpuCount,
             Hostname = payload.Hostname ?? string.Empty,

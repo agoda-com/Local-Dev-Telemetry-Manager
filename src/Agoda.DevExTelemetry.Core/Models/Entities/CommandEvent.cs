@@ -1,6 +1,6 @@
 namespace Agoda.DevExTelemetry.Core.Models.Entities;
 
-public class BuildMetric
+public class CommandEvent
 {
     public string Id { get; set; } = string.Empty;
     public string? SessionId { get; set; }
@@ -14,14 +14,26 @@ public class BuildMetric
     public string ProjectName { get; set; } = string.Empty;
     public string Repository { get; set; } = string.Empty;
     public string RepositoryName { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public string Phase { get; set; } = string.Empty;
+    public string Command { get; set; } = string.Empty;
+    public int ExitCode { get; set; }
+    public bool Success { get; set; }
+    public string? Signal { get; set; }
+    public int? ErrorCount { get; set; }
     public double TimeTakenMs { get; set; }
-    public string MetricType { get; set; } = string.Empty;
-    public string BuildCategory { get; set; } = string.Empty;
-    public string? ReloadType { get; set; }
-    public string? ToolVersion { get; set; }
+    public string? PackageManager { get; set; }
+    public string? PackageManagerVersion { get; set; }
+    public bool? ColdInstall { get; set; }
+    public bool? LockfileChanged { get; set; }
+    public string? MeasurementSource { get; set; }
+    public bool? Prebundled { get; set; }
+    public double? DomContentLoadedMs { get; set; }
+    public double? FirstContentfulPaintMs { get; set; }
+    public long? SpooledAt { get; set; }
     public string? CommitSha { get; set; }
-    public bool IsDebuggerAttached { get; set; }
-    public string ExecutionEnvironment { get; set; } = string.Empty;
     public string SourceEndpoint { get; set; } = string.Empty;
     public string? ExtraData { get; set; }
+
+    public ICollection<CommandEventNpmTimer> NpmTimers { get; set; } = new List<CommandEventNpmTimer>();
 }
