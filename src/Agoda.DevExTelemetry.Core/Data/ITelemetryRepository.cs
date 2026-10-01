@@ -7,6 +7,8 @@ public interface ITelemetryRepository
 {
     Task<bool> BuildMetricExistsAsync(string id);
     Task AddBuildMetricAsync(BuildMetric metric);
+    Task<bool> CommandEventExistsAsync(string id);
+    Task AddCommandEventAsync(CommandEvent commandEvent, IEnumerable<CommandEventNpmTimer> npmTimers);
     Task<bool> TestRunExistsAsync(string id);
     Task AddTestRunAsync(TestRun run, IEnumerable<TestCase> testCases);
     Task AddRawPayloadAsync(RawPayload payload);

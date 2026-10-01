@@ -7,6 +7,9 @@ public class VitePayload
     [JsonPropertyName("id")]
     public string? Id { get; set; }
 
+    [JsonPropertyName("sessionId")]
+    public string? SessionId { get; set; }
+
     [JsonPropertyName("userName")]
     public string? UserName { get; set; }
 

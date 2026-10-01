@@ -84,13 +84,15 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         var testRunQueue = Services.GetRequiredService<IBackgroundTaskQueue<IngestTestRunWorkItem>>();
         var buildMetricQueue = Services.GetRequiredService<IBackgroundTaskQueue<IngestBuildMetricWorkItem>>();
+        var commandEventQueue = Services.GetRequiredService<IBackgroundTaskQueue<IngestCommandEventWorkItem>>();
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(10));
 
         await Task.WhenAll(
             testRunQueue.WaitUntilDrainedAsync(cts.Token),
-            buildMetricQueue.WaitUntilDrainedAsync(cts.Token));
+            buildMetricQueue.WaitUntilDrainedAsync(cts.Token),
+            commandEventQueue.WaitUntilDrainedAsync(cts.Token));
     }
 
     protected override void Dispose(bool disposing)
