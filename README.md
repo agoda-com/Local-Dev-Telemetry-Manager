@@ -90,6 +90,49 @@ This is useful when DNS changes aren’t available yet. Your IT support team can
 
 See [docs/deployment-scenarios.md](docs/deployment-scenarios.md) for concrete deployment topologies, client routing examples, and markdown diagrams.
 
+## Using with AI agents
+
+The server exposes an [MCP](https://modelcontextprotocol.io) endpoint at `/mcp`, so coding agents can query the telemetry and investigate slow tests, flaky tests and slow builds themselves. It is read-only, needs no auth (like the rest of the API), and can be turned off with `Mcp:Enabled=false`.
+
+Connect from Claude Code:
+
+```bash
+claude mcp add --transport http dx-telemetry http://compilation-metrics/mcp
+```
+
+Connect from Cursor by adding this to `.cursor/mcp.json`:
+
+```json
+{ "mcpServers": { "dx-telemetry": { "url": "http://compilation-metrics/mcp" } } }
+```
+
+### Two layers of tools
+
+| Layer | Tools | Use it to |
+|---|---|---|
+| Analysis | `get_overview`, `find_slow_tests`, `find_flaky_tests`, `find_failing_tests`, `find_slow_builds`, `explain_build_time`, `find_regressions` | Get a ranked answer to a common question in one call. Each row has a `reason`, and an `evidence` column naming the data tool call that backs it up. Every threshold (`min_runs`, `min_increase_pct` and so on) is a parameter |
+| Data | `list_scopes`, `list_test_suites`, `get_tests`, `get_test`, `get_test_failures`, `list_test_runs`, `get_test_run`, `list_build_series`, `get_builds`, `get_build_stats`, `get_build` | Filter, group, sort and page without judging. Check an analysis result, or ask a question the analysis tools don't cover |
+
+There are also four prompts (recipes): `investigate_slow_tests`, `investigate_flaky_tests`, `investigate_build_regressions` and `triage_dev_loop`.
+
+Example questions:
+- "Which tests in web-app cost us the most time, and why are they slow?"
+- "Which tests are flaky in CI, and do their failures share a cause?"
+- "Did the .Net compile get slower this week? For whom?"
+
+### Output and exports
+
+Results are CSV (or `format=json`), capped at 500 rows per call (`Mcp:MaxRows`), with a `next_cursor` for the next page. Durations are whole milliseconds and timestamps are UTC. User names and hostnames are never returned.
+
+Every result also carries an `export_url`. It is `GET /api/export/{tool}.csv` with the same arguments, with no row cap below `Export:MaxRows` (1,000,000). Agents can pull a whole dataset to disk and analyse it there:
+
+```bash
+curl -s "http://compilation-metrics/api/export/get_tests.csv?suite_id=ab12cd34&environment=ci&days=30" -o tests.csv
+duckdb -c "select test_key, fail_rate, status_sequence from 'tests.csv' where failed > 0 and passed > 0 order by fail_rate desc"
+```
+
+`export_url` uses `Mcp:PublicBaseUrl` when it is set. Otherwise it uses the request's host, honouring `X-Forwarded-Proto`/`X-Forwarded-Host` (only for this URL).
+
 ## Development
 
 ### Prerequisites
@@ -126,3 +169,5 @@ I wrote more about this exact setup in [Bridging Worlds: Making .NET BFF and Rea
 cd src
 dotnet test
 ```
+
+The MCP tools are tested in `Agoda.DevExTelemetry.McpTests`, which drives `/mcp` with the MCP C# client on SQLite and PostgreSQL. The PostgreSQL fixtures start a Testcontainers container. Without Docker, set `DEVEX_TEST_POSTGRES` to the connection string of a running server, and each test creates and drops its own database there.
