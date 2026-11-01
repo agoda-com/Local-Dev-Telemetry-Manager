@@ -238,7 +238,7 @@ public sealed class TestAggregateQueries : ITestAggregateQueries
             TestRunner = g.Key.TestRunner,
             Key = g.Key.Key,
             ClassName = g.Max(f => f.ClassName),
-            Name = g.Max(f => f.Name),
+            Name = g.Max(f => f.Name)!,
             Runs = g.Count(),
             Passed = g.Count(f => f.Status == "Passed"),
             Failed = g.Count(f => f.Status == "Failed"),
