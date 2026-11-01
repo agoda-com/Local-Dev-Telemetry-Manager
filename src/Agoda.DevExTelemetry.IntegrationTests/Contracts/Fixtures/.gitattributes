@@ -1,0 +1,2 @@
+# The fixtures are byte-identical to agoda-com/testresults-collector src/test/contracts: keep LF on every checkout.
+*.json text eol=lf

@@ -31,6 +31,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Contracts\Fixtures\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Agoda.DevExTelemetry.WebApi\Agoda.DevExTelemetry.WebApi.csproj" />
     <ProjectReference Include="..\Agoda.DevExTelemetry.Core\Agoda.DevExTelemetry.Core.csproj" />
   </ItemGroup>
