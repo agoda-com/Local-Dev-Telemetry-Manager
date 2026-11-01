@@ -18,13 +18,26 @@ public interface ITestAnalysisQueries
     Task<IReadOnlyDictionary<TestSuiteIdentity, double>> GetSuiteTotalsAsync(InsightsScope scope, CancellationToken cancellationToken);
 
     /// <summary>
-    /// For many tests at once, their Passed and Failed executions in scope ordered by (ReceivedAt, CaseId), oldest first.
-    /// Skipped, Pending and Unknown are left out in SQL. A narrow projection (branch, time, case id, failed flag): the
-    /// flip rate needs the order of results per branch, which no GROUP BY gives. Tests without such executions are absent.
+    /// Cheap candidate selection for the flaky and failing tools: one SQL GROUP BY row per test (key, runs, passed,
+    /// failed, last run, last failure) with the filter's text filters applied to executions and its
+    /// <see cref="TestsFilter.MinRuns"/> and <see cref="TestsFilter.Status"/> applied to the groups. No percentiles,
+    /// no sequences, no paging: callers rank the candidates and enrich only the page they return.
     /// </summary>
-    Task<IReadOnlyDictionary<(TestSuiteIdentity Suite, string NameKey), IReadOnlyList<TestOutcome>>> GetOutcomesAsync(
+    Task<IReadOnlyList<TestCandidate>> GetCandidatesAsync(InsightsScope scope, TestsFilter filter, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// For many tests at once, what their Passed and Failed executions add up to. The executions are streamed in
+    /// (suite, name key, ReceivedAt, CaseId) order and folded one test at a time, so memory is O(tests) for the
+    /// result plus O(branches) for the test being folded, never O(executions). Skipped, Pending and Unknown are left
+    /// out in SQL. Tests without such executions are absent.
+    /// </summary>
+    Task<IReadOnlyDictionary<(TestSuiteIdentity Suite, string NameKey), OutcomeSummary>> GetOutcomesAsync(
         InsightsScope scope, IReadOnlyCollection<(TestSuiteIdentity Suite, string NameKey)> tests, CancellationToken cancellationToken);
 }
+
+/// <summary>One test from <see cref="ITestAnalysisQueries.GetCandidatesAsync"/>: its key and the SQL-only counts.</summary>
+public sealed record TestCandidate(
+    TestSuiteIdentity Suite, string NameKey, string TestKey, int Runs, int Passed, int Failed, DateTime LastRunAt, DateTime? LastFailedAt);
 
 [RegisterPerRequest]
 public sealed class TestAnalysisQueries : ITestAnalysisQueries
@@ -46,29 +59,83 @@ public sealed class TestAnalysisQueries : ITestAnalysisQueries
         return rows.ToDictionary(r => new TestSuiteIdentity(r.Repository, r.Project, r.TestRunner), r => r.Total ?? 0);
     }
 
-    public async Task<IReadOnlyDictionary<(TestSuiteIdentity Suite, string NameKey), IReadOnlyList<TestOutcome>>> GetOutcomesAsync(
+    public async Task<IReadOnlyList<TestCandidate>> GetCandidatesAsync(InsightsScope scope, TestsFilter filter, CancellationToken cancellationToken)
+    {
+        var facts = TestAggregateQueries.ApplyExecutionFilters(scope.Apply(_db.TestCases).Facts(), filter);
+        var groups = facts
+            .GroupBy(f => new { f.Repository, f.Project, f.TestRunner, f.NameKey })
+            .Select(g => new
+            {
+                g.Key.Repository,
+                g.Key.Project,
+                g.Key.TestRunner,
+                g.Key.NameKey,
+                Runs = g.Count(),
+                Passed = g.Count(f => f.Status == "Passed"),
+                Failed = g.Count(f => f.Status == "Failed"),
+                LastRunAt = g.Max(f => f.ReceivedAt),
+                LastFailedAt = g.Where(f => f.Status == "Failed").Max(f => (DateTime?)f.ReceivedAt)
+            });
+        if (filter.MinRuns is { } minRuns) groups = groups.Where(a => a.Runs >= minRuns);
+        groups = filter.Status switch
+        {
+            TestStatusFilter.HasFailures => groups.Where(a => a.Failed > 0),
+            TestStatusFilter.HasPassesAndFailures => groups.Where(a => a.Passed > 0 && a.Failed > 0),
+            TestStatusFilter.AlwaysFailed => groups.Where(a => a.Failed > 0 && a.Passed == 0),
+            TestStatusFilter.LastFailed => groups.Where(a => a.LastFailedAt != null && a.LastFailedAt == a.LastRunAt),
+            _ => groups
+        };
+
+        var suiteIds = new Dictionary<TestSuiteIdentity, string>();
+        var result = new List<TestCandidate>();
+        await foreach (var a in groups.AsAsyncEnumerable().WithCancellation(cancellationToken))
+        {
+            var suite = new TestSuiteIdentity(a.Repository, a.Project, a.TestRunner);
+            if (!suiteIds.TryGetValue(suite, out var suiteId)) suiteIds[suite] = suiteId = suite.SuiteId;
+            result.Add(new TestCandidate(
+                suite, a.NameKey, TestKey.Format(suiteId, a.NameKey), a.Runs, a.Passed, a.Failed,
+                DateTime.SpecifyKind(a.LastRunAt, DateTimeKind.Utc),
+                a.LastFailedAt.HasValue ? DateTime.SpecifyKind(a.LastFailedAt.Value, DateTimeKind.Utc) : null));
+        }
+
+        return result;
+    }
+
+    public async Task<IReadOnlyDictionary<(TestSuiteIdentity Suite, string NameKey), OutcomeSummary>> GetOutcomesAsync(
         InsightsScope scope, IReadOnlyCollection<(TestSuiteIdentity Suite, string NameKey)> tests, CancellationToken cancellationToken)
     {
         var wanted = tests.ToHashSet();
-        var result = new Dictionary<(TestSuiteIdentity, string), List<TestOutcome>>();
+        var result = new Dictionary<(TestSuiteIdentity, string), OutcomeSummary>();
         var facts = scope.Apply(_db.TestCases).Facts().Where(f => f.Status == "Passed" || f.Status == "Failed");
         foreach (var chunk in wanted.Select(t => t.NameKey).Distinct().Chunk(KEY_CHUNK))
         {
             var keys = chunk.ToList();
             var query = facts.Where(f => keys.Contains(f.NameKey))
-                .OrderBy(f => f.ReceivedAt).ThenBy(f => f.CaseId)
+                .OrderBy(f => f.Repository).ThenBy(f => f.Project).ThenBy(f => f.TestRunner).ThenBy(f => f.NameKey)
+                .ThenBy(f => f.ReceivedAt).ThenBy(f => f.CaseId)
                 .Select(f => new { f.Repository, f.Project, f.TestRunner, f.NameKey, f.Branch, f.ReceivedAt, f.CaseId, f.Status });
+
+            (TestSuiteIdentity, string)? current = null;
+            var fold = new OutcomeFold();
             await foreach (var r in query.AsAsyncEnumerable().WithCancellation(cancellationToken))
             {
-                // A key chunk can match the same name key in a suite the caller did not ask about.
                 var key = (new TestSuiteIdentity(r.Repository, r.Project, r.TestRunner), r.NameKey);
+                if (current != key)
+                {
+                    if (current is { } done && wanted.Contains(done)) result[done] = fold.Build();
+                    current = key;
+                    fold = new OutcomeFold();
+                }
+
+                // A key chunk can match the same name key in a suite the caller did not ask about.
                 if (!wanted.Contains(key)) continue;
-                if (!result.TryGetValue(key, out var list)) result[key] = list = [];
-                list.Add(new TestOutcome(DateTime.SpecifyKind(r.ReceivedAt, DateTimeKind.Utc), r.CaseId, r.Branch, r.Status == "Failed"));
+                fold.Add(new TestOutcome(DateTime.SpecifyKind(r.ReceivedAt, DateTimeKind.Utc), r.CaseId, r.Branch, r.Status == "Failed"));
             }
+
+            if (current is { } last && wanted.Contains(last)) result[last] = fold.Build();
         }
 
-        return result.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<TestOutcome>)kv.Value);
+        return result;
     }
 }
 
@@ -76,38 +143,57 @@ public sealed class TestAnalysisQueries : ITestAnalysisQueries
 /// <param name="Runs">Passed + Failed executions.</param>
 /// <param name="Flips">Status changes between consecutive executions on the same branch, summed over branches.</param>
 /// <param name="Pairs">Consecutive same-branch pairs: Runs minus the number of branches. The flip rate's denominator.</param>
-/// <param name="FailingSince">Time of the first failure of the trailing run of failures, or null when the latest execution passed.</param>
+/// <param name="FailingSince">Time of the first failure of the trailing run of failures (across branches, in time order), or null when the latest execution passed.</param>
 /// <param name="LastPassedAt">Time of the latest pass, or null.</param>
-public sealed record OutcomeSummary(int Runs, int Failed, int Flips, int Pairs, int Branches, DateTime? FailingSince, DateTime? LastPassedAt)
+/// <param name="TrailingFailures">Length of the trailing run of failures: how many of the latest executions, in time order across branches, all failed.</param>
+public sealed record OutcomeSummary(
+    int Runs, int Failed, int Flips, int Pairs, int Branches, DateTime? FailingSince, DateTime? LastPassedAt, int TrailingFailures = 0)
 {
     /// <summary>flips / pairs, where pairs = runs - branches (each branch's first run has no predecessor); null without pairs.</summary>
     public double? FlipRate => Stats.Ratio(Flips, Pairs);
 
+    /// <summary>Folds executions given in (ReceivedAt, CaseId) order.</summary>
     public static OutcomeSummary Of(IReadOnlyList<TestOutcome> ordered)
     {
-        var lastByBranch = new Dictionary<string, bool>(StringComparer.Ordinal);
-        var flips = 0;
-        var failed = 0;
-        DateTime? failingSince = null;
-        DateTime? lastPassed = null;
-        foreach (var o in ordered)
-        {
-            if (lastByBranch.TryGetValue(o.Branch, out var previous) && previous != o.Failed) flips++;
-            lastByBranch[o.Branch] = o.Failed;
-            if (o.Failed)
-            {
-                failed++;
-                failingSince ??= o.At;
-            }
-            else
-            {
-                failingSince = null;
-                lastPassed = o.At;
-            }
-        }
+        var fold = new OutcomeFold();
+        foreach (var o in ordered) fold.Add(o);
+        return fold.Build();
+    }
+}
 
-        var branches = lastByBranch.Count;
-        return new OutcomeSummary(ordered.Count, failed, flips, ordered.Count - branches, branches, failingSince, lastPassed);
+/// <summary>
+/// Streaming fold of one test's executions, which must arrive in (ReceivedAt, CaseId) order across branches.
+/// State is O(branches): the last status per branch plus a few counters.
+/// </summary>
+internal sealed class OutcomeFold
+{
+    private readonly Dictionary<string, bool> _lastByBranch = new(StringComparer.Ordinal);
+    private int _runs, _failed, _flips, _trailing;
+    private DateTime? _failingSince, _lastPassed;
+
+    public void Add(TestOutcome o)
+    {
+        _runs++;
+        if (_lastByBranch.TryGetValue(o.Branch, out var previous) && previous != o.Failed) _flips++;
+        _lastByBranch[o.Branch] = o.Failed;
+        if (o.Failed)
+        {
+            _failed++;
+            _trailing++;
+            _failingSince ??= o.At;
+        }
+        else
+        {
+            _trailing = 0;
+            _failingSince = null;
+            _lastPassed = o.At;
+        }
+    }
+
+    public OutcomeSummary Build()
+    {
+        var branches = _lastByBranch.Count;
+        return new OutcomeSummary(_runs, _failed, _flips, _runs - branches, branches, _failingSince, _lastPassed, _trailing);
     }
 }
 
@@ -141,6 +227,21 @@ internal static class TestAnalysisArgs
             NameContains = args.GetString("name_contains"),
             ClassContains = args.GetString("class_contains")
         };
+    }
+
+    /// <summary>
+    /// The full aggregate rows (percentiles, status sequence) of one page of candidates only. <paramref name="filter"/> must be
+    /// the filter the candidates were chosen with; its group filters are dropped and the page's name keys added, so each row
+    /// aggregates exactly as it would in a full <see cref="ITestAggregateQueries.QueryTestsAsync"/> over the filter.
+    /// </summary>
+    public static async Task<IReadOnlyDictionary<string, TestAggregateRow>> EnrichAsync(
+        ITestAggregateQueries queries, InsightsScope scope, TestsFilter filter, IReadOnlyCollection<TestCandidate> page, CancellationToken cancellationToken)
+    {
+        if (page.Count == 0) return new Dictionary<string, TestAggregateRow>();
+        var pageFilter = filter with { MinRuns = null, MinAvgMs = null, Status = TestStatusFilter.None, NameKeys = page.Select(c => c.NameKey).Distinct().ToList() };
+        var (rows, _) = await queries.QueryTestsAsync(scope, pageFilter, new SortSpec("runs", true), 0, int.MaxValue, cancellationToken);
+        var wanted = page.Select(c => c.TestKey).ToHashSet(StringComparer.Ordinal);
+        return rows.Where(r => wanted.Contains(r.TestKey)).ToDictionary(r => r.TestKey, StringComparer.Ordinal);
     }
 
     public static string Applied(InsightsScope scope, InsightsArgs args, params (string Name, object Value)[] thresholds)

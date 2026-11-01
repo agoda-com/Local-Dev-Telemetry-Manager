@@ -20,8 +20,9 @@ public sealed record FailingTestRow(
 /// <c>find_failing_tests</c>: tests that are broken rather than flaky. A test is listed when
 /// <c>fail_rate &gt;= min_fail_rate</c> and <c>runs &gt;= min_runs</c>, or when its latest <c>recent_runs</c>
 /// executions all failed. Here <c>runs</c> counts Passed + Failed executions; skipped, pending and unknown are ignored
-/// everywhere. Candidates come from <see cref="ITestAggregateQueries.QueryTestsAsync"/> with
-/// <see cref="TestStatusFilter.HasFailures"/>; the recent-runs rule reads the end of the (last 30) status sequence.
+/// everywhere. Candidates come from the SQL-only <see cref="ITestAnalysisQueries.GetCandidatesAsync"/> with
+/// <see cref="TestStatusFilter.HasFailures"/>; the recent-runs rule uses the trailing failure streak of one streaming fold;
+/// percentiles and sequences are computed for the returned page only.
 /// Tests that are failing right now (latest execution failed) rank first, by the start of their failing streak,
 /// oldest first; the rest follow by fail rate.
 /// </summary>
@@ -86,19 +87,21 @@ public sealed class FailingTestsDataset : IInsightsDataset
             MinRuns = Math.Min(minRuns, recentRuns)
         };
 
-        var (candidates, _) = await _queries.QueryTestsAsync(
-            scope, filter, new SortSpec("fail_rate", true), 0, int.MaxValue, cancellationToken);
+        var candidates = await _analysis.GetCandidatesAsync(scope, filter, cancellationToken);
 
-        var matched = candidates
-            .Select(c => (Test: c, Rule: Match(c, minFailRate, minRuns, recentRuns)))
-            .Where(x => x.Rule != null)
+        // The rate rule is decidable from the SQL counts. A test that fails the rate rule can only match by recent runs
+        // if it has at least recent_runs failures, so the rest need no outcomes at all.
+        var possible = candidates
+            .Where(c => ByRate(c, minFailRate, minRuns) || (c.Failed >= recentRuns && c.Passed + c.Failed >= recentRuns))
             .ToList();
 
-        // One batched query for the matched tests only: when did the current streak start, and when did it last pass.
-        var outcomes = await _analysis.GetOutcomesAsync(scope, matched.Select(x => Key(x.Test)).ToList(), cancellationToken);
-        var ranked = matched
-            .Select(x => (x.Test, x.Rule, Summary: outcomes.TryGetValue(Key(x.Test), out var l) ? OutcomeSummary.Of(l) : null))
+        // One streaming fold for those tests: when did the current streak start, when did it last pass, how long is it.
+        var outcomes = await _analysis.GetOutcomesAsync(scope, possible.Select(c => (c.Suite, c.NameKey)).ToList(), cancellationToken);
+        var ranked = possible
+            .Select(c => (Test: c, Summary: outcomes.GetValueOrDefault((c.Suite, c.NameKey))))
             .Where(x => x.Summary != null)
+            .Select(x => (x.Test, x.Summary, Rule: Match(x.Test, x.Summary!, minFailRate, minRuns, recentRuns)))
+            .Where(x => x.Rule != null)
             .OrderBy(x => x.Summary!.FailingSince.HasValue ? 0 : 1)
             .ThenBy(x => x.Summary!.FailingSince ?? DateTime.MaxValue)
             .ThenByDescending(x => Stats.Ratio(x.Summary!.Failed, x.Summary.Runs))
@@ -107,6 +110,9 @@ public sealed class FailingTestsDataset : IInsightsDataset
 
         var offset = Cursor.DecodeOffset(page.Cursor);
         var pageItems = ranked.Skip(offset).Take(page.Limit).ToList();
+        // Percentiles and sequences are computed for the returned page only.
+        var enriched = await TestAnalysisArgs.EnrichAsync(_queries, scope, filter, pageItems.Select(x => x.Test).ToList(), cancellationToken);
+        pageItems = pageItems.Where(x => enriched.ContainsKey(x.Test.TestKey)).ToList();
         var keys = pageItems.Select(x => Key(x.Test)).ToList();
         var streaks = keys.Count == 0
             ? new Dictionary<(TestSuiteIdentity, string), TestFailureStreak>()
@@ -119,6 +125,7 @@ public sealed class FailingTestsDataset : IInsightsDataset
         var rows = pageItems.Select(x =>
         {
             var key = Key(x.Test);
+            var test = enriched[x.Test.TestKey];
             string? latestError;
             string branches;
             if (streaks.TryGetValue(key, out var streak))
@@ -136,9 +143,9 @@ public sealed class FailingTestsDataset : IInsightsDataset
 
             var s = x.Summary!;
             return new FailingTestRow(
-                x.Test, s.Runs, Stats.Ratio(s.Failed, s.Runs), s.FailingSince, s.LastPassedAt, latestError, branches,
+                test, s.Runs, Stats.Ratio(s.Failed, s.Runs), s.FailingSince, s.LastPassedAt, latestError, branches,
                 Reason(s, x.Rule!, recentRuns),
-                Evidence.Call(DatasetNames.GET_TEST_FAILURES, Evidence.ScopeArgs(scope).With("test_key", x.Test.TestKey)));
+                Evidence.Call(DatasetNames.GET_TEST_FAILURES, Evidence.ScopeArgs(scope).With("test_key", test.TestKey)));
         }).ToList();
 
         return Schema.ToTable(rows, ranked.Count, Cursor.NextOffset(offset, rows.Count, ranked.Count)) with
@@ -148,18 +155,22 @@ public sealed class FailingTestsDataset : IInsightsDataset
         };
     }
 
-    /// <summary>Which rule listed the test: "rate", "recent", "rate and recent", or null when neither.</summary>
-    private static string? Match(TestAggregateRow t, double minFailRate, int minRuns, int recentRuns)
+    private static bool ByRate(TestCandidate t, double minFailRate, int minRuns)
     {
         var runs = t.Passed + t.Failed;
-        var byRate = runs >= minRuns && runs > 0 && (double)t.Failed / runs >= minFailRate;
-        var results = t.StatusSequence.Where(c => c is 'P' or 'F').ToArray();
-        var byRecent = results.Length >= recentRuns && results[^recentRuns..].All(c => c == 'F');
+        return runs >= minRuns && runs > 0 && (double)t.Failed / runs >= minFailRate;
+    }
+
+    /// <summary>Which rule listed the test: "rate", "recent", "rate and recent", or null when neither.</summary>
+    private static string? Match(TestCandidate t, OutcomeSummary s, double minFailRate, int minRuns, int recentRuns)
+    {
+        var byRate = ByRate(t, minFailRate, minRuns);
+        // The latest recent_runs Passed/Failed executions all failed: the trailing failure streak is at least that long.
+        var byRecent = s.TrailingFailures >= recentRuns;
         return (byRate, byRecent) switch { (true, true) => "rate and recent", (true, false) => "rate", (false, true) => "recent", _ => null };
     }
 
-    private static (TestSuiteIdentity, string) Key(TestAggregateRow r) =>
-        (new TestSuiteIdentity(r.Repository, r.Project, r.TestRunner), r.TestKey[(r.SuiteId.Length + 1)..]);
+    private static (TestSuiteIdentity, string) Key(TestCandidate c) => (c.Suite, c.NameKey);
 
     private static string Reason(OutcomeSummary s, string rule, int recentRuns)
     {

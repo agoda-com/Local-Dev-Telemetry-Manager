@@ -18,8 +18,8 @@ public sealed record FlakyTestRow(
 /// <summary>
 /// <c>find_flaky_tests</c>: tests that both passed and failed in the window, ranked by flip rate.
 /// <para>
-/// Candidates come from <see cref="ITestAggregateQueries.QueryTestsAsync"/> with
-/// <see cref="TestStatusFilter.HasPassesAndFailures"/>. Flips are counted from one batched narrow query
+/// Candidates come from the SQL-only <see cref="ITestAnalysisQueries.GetCandidatesAsync"/> with
+/// <see cref="TestStatusFilter.HasPassesAndFailures"/>; percentiles and sequences are computed for the returned page only. Flips are counted from one streaming fold
 /// (<see cref="ITestAnalysisQueries.GetOutcomesAsync"/>) over Passed/Failed executions only: a flip is a status change
 /// between consecutive executions on the same branch, ordered by time. <c>flip_rate = flips / (runs - branches)</c>,
 /// that is flips over the number of consecutive same-branch pairs, which is <c>flips / (runs - 1)</c> for one branch.
@@ -85,12 +85,11 @@ public sealed class FlakyTestsDataset : IInsightsDataset
             MinRuns = minRuns
         };
 
-        var (candidates, _) = await _queries.QueryTestsAsync(
-            scope, filter, new SortSpec("fail_rate", true), 0, int.MaxValue, cancellationToken);
+        var candidates = await _analysis.GetCandidatesAsync(scope, filter, cancellationToken);
         var outcomes = await _analysis.GetOutcomesAsync(scope, candidates.Select(Key).ToList(), cancellationToken);
 
         var ranked = candidates
-            .Select(c => (Test: c, Summary: outcomes.TryGetValue(Key(c), out var list) ? OutcomeSummary.Of(list) : null))
+            .Select(c => (Test: c, Summary: outcomes.GetValueOrDefault(Key(c))))
             .Where(x => x.Summary is { Flips: > 0 } s && s.Runs >= minRuns && s.FlipRate >= minFlipRate)
             .OrderByDescending(x => x.Summary!.FlipRate)
             .ThenByDescending(x => Stats.Ratio(x.Summary!.Failed, x.Summary.Runs))
@@ -99,17 +98,20 @@ public sealed class FlakyTestsDataset : IInsightsDataset
 
         var offset = Cursor.DecodeOffset(page.Cursor);
         var pageItems = ranked.Skip(offset).Take(page.Limit).ToList();
+        // Percentiles and sequences are computed for the returned page only.
+        var enriched = await TestAnalysisArgs.EnrichAsync(_queries, scope, filter, pageItems.Select(x => x.Test).ToList(), cancellationToken);
         var errors = pageItems.Count == 0
             ? new Dictionary<(TestSuiteIdentity, string), IReadOnlyList<TestErrorSummary>>()
             : (await _history.GetErrorSummariesAsync(scope, pageItems.Select(x => Key(x.Test)).ToList(), TOP_ERRORS, cancellationToken))
             .ToDictionary(kv => kv.Key, kv => kv.Value);
 
-        var rows = pageItems.Select(x =>
+        var rows = pageItems.Where(x => enriched.ContainsKey(x.Test.TestKey)).Select(x =>
         {
+            var test = enriched[x.Test.TestKey];
             var topErrors = errors.TryGetValue(Key(x.Test), out var list)
                 ? string.Join("; ", list.Select(e => $"{e.Error} ({e.Count})"))
                 : string.Empty;
-            return new FlakyTestRow(x.Test, x.Summary!, topErrors, Reason(x.Test, x.Summary!), EvidenceFor(scope, x.Test));
+            return new FlakyTestRow(test, x.Summary!, topErrors, Reason(test, x.Summary!), EvidenceFor(scope, test));
         }).ToList();
 
         var table = Schema.ToTable(rows, ranked.Count, Cursor.NextOffset(offset, rows.Count, ranked.Count)) with
@@ -125,11 +127,7 @@ public sealed class FlakyTestsDataset : IInsightsDataset
             };
     }
 
-    private static (TestSuiteIdentity, string) Key(TestAggregateRow r) =>
-        (new TestSuiteIdentity(r.Repository, r.Project, r.TestRunner), KeyName(r));
-
-    // TestKey is suite_id:name_key; the name key is everything after the first colon.
-    private static string KeyName(TestAggregateRow r) => r.TestKey[(r.SuiteId.Length + 1)..];
+    private static (TestSuiteIdentity, string) Key(TestCandidate c) => (c.Suite, c.NameKey);
 
     private static string Reason(TestAggregateRow test, OutcomeSummary s)
     {
