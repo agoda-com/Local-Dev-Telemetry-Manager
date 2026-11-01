@@ -92,7 +92,7 @@ public sealed class BuildQueries : IBuildQueries
             .Select(g => (
                 Row: new BuildSeriesRow(
                     StableId.Series(g.RepositoryName, g.ProjectName, g.MetricType, g.ReloadType),
-                    g.RepositoryName, g.ProjectName, g.Category, g.MetricType,
+                    g.RepositoryName, g.ProjectName, g.Category ?? string.Empty, g.MetricType,
                     g.ReloadType.Length == 0 ? null : g.ReloadType,
                     g.Count, DateTime.SpecifyKind(g.LastAt, DateTimeKind.Utc), g.AvgMs, 0, 0),
                 Key: (g.RepositoryName, g.ProjectName, g.MetricType, g.ReloadType)))
