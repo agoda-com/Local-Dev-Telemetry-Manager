@@ -56,6 +56,32 @@ public class McpServerTests
     }
 
     [Test]
+    public async Task ListTools_ReturnsAll18Tools()
+    {
+        var tools = await _client.ListToolsAsync();
+
+        tools.Select(t => t.Name).OrderBy(n => n, StringComparer.Ordinal).ShouldBe([
+            "explain_build_time", "find_failing_tests", "find_flaky_tests", "find_regressions", "find_slow_builds",
+            "find_slow_tests", "get_build", "get_build_stats", "get_builds", "get_overview", "get_test",
+            "get_test_failures", "get_test_run", "get_tests", "list_build_series", "list_scopes", "list_test_runs",
+            "list_test_suites"
+        ]);
+    }
+
+    [Test]
+    public async Task ListTools_NoToolTakesUserOrHost()
+    {
+        var tools = await _client.ListToolsAsync();
+
+        foreach (var tool in tools)
+        {
+            var schema = tool.JsonSchema.ToString();
+            schema.ShouldNotContain("user_name", Case.Insensitive, tool.Name);
+            schema.ShouldNotContain("\u0022hostname\u0022", Case.Insensitive, tool.Name);
+        }
+    }
+
+    [Test]
     public async Task ListTools_EveryToolIsReadOnly()
     {
         var tools = await _client.ListToolsAsync();
