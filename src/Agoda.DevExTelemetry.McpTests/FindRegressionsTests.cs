@@ -85,3 +85,20 @@ public class FindRegressionsTests
         result.ErrorText.ShouldContain("min_samples");
     }
 }
+
+[TestFixture]
+public class EvidenceCallsTests
+{
+    [Test]
+    public async Task CallEvidenceAsync_ConvertsArgumentsToSchemaTypes()
+    {
+        using var host = new McpTestHost(DatabaseProvider.Sqlite);
+        await host.SeedAsync(Seed.Run(McpTestHost.Now.AddDays(-1), [Seed.Case("A")], runner: "Vitest"));
+        await using var client = await host.ConnectAsync();
+
+        var result = await client.CallEvidenceAsync("list_scopes kind=test_runner limit=5 format=\"csv\"");
+
+        result.IsError.ShouldBeFalse(result.ErrorText);
+        result.Rows.Select(r => r["value"]).ShouldBe(["Vitest"]);
+    }
+}
