@@ -13,7 +13,7 @@ public class StatusNormalizer : IStatusNormalizer
         return rawStatus.Trim().ToLowerInvariant() switch
         {
             "passed" or "pass" or "succeeded" => "Passed",
-            "failed" or "fail" => "Failed",
+            "failed" or "fail" or "timedout" or "interrupted" => "Failed",
             "skipped" or "skip" or "ignored" => "Skipped",
             "pending" or "todo" => "Pending",
             _ => "Unknown"

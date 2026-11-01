@@ -27,6 +27,8 @@ public class StatusNormalizerTests
     [TestCase("Failed")]
     [TestCase("failed")]
     [TestCase("fail")]
+    [TestCase("timedOut")]
+    [TestCase("interrupted")]
     public void Normalize_Failed_ReturnsFailed(string input)
     {
         _sut.Normalize(input).ShouldBe("Failed");
