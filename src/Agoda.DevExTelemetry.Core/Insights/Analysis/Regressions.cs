@@ -127,9 +127,10 @@ public sealed class FindRegressionsDataset : IInsightsDataset
         return Schema.ToTable(pageRows, ranked.Count, Cursor.NextOffset(offset, pageRows.Count, ranked.Count)) with
         {
             Window = query.Scope.Window,
-            Applied = $"{query.Scope.Describe()} kind={kind} current={query.CurrentFrom:yyyy-MM-dd}..{query.To:yyyy-MM-dd} " +
-                      $"baseline={query.BaselineFrom:yyyy-MM-dd}..{query.CurrentFrom:yyyy-MM-dd} " +
-                      $"min_increase_pct={query.MinIncreasePct} min_samples={query.MinSamples}"
+            Applied = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                $"{query.Scope.Describe()} kind={kind} current={query.CurrentFrom:yyyy-MM-dd}..{query.To:yyyy-MM-dd} " +
+                $"baseline={query.BaselineFrom:yyyy-MM-dd}..{query.CurrentFrom:yyyy-MM-dd} " +
+                $"min_increase_pct={query.MinIncreasePct} min_samples={query.MinSamples}")
         };
     }
 

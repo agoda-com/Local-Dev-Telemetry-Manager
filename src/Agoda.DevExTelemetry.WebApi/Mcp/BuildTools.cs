@@ -131,6 +131,7 @@ public sealed class BuildTools
         One build metric by id, as vertical rows. The time window does not apply.
         Columns: field, value. One row per get_builds column, then the build's extra data flattened as extra.<path> rows
         (nested objects use dots, arrays use [i]; for Gradle for example extra.RequestedTasks, extra.CacheRatio).
+        Filters: id (required).
         """)]
     public Task<CallToolResult> GetBuild(
         [Description("The build id, from get_builds.")] string id,

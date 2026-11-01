@@ -24,6 +24,7 @@ public sealed class OverviewTools
         Columns: section (the analysis tool), rank, subject_id (test_key, series_id or suite_id), repository, project,
         reason, evidence (the data tool call that shows it). Call the section's tool for more rows or other thresholds,
         and explain_build_time with a series_id to see why a build is slow.
+        Filters: the common scope (repository, project, branch, environment, days or from/to), passed to every section.
         """)]
     public Task<CallToolResult> GetOverview(
         [Description(ToolArgs.REPOSITORY)] string? repository = null,

@@ -109,7 +109,7 @@ public sealed class TestHistoryQueries : ITestHistoryQueries
     public async Task<(IReadOnlyList<TestCandidate> Candidates, int Total)> FindTestsAsync(
         InsightsScope scope, TestSuiteIdentity suite, string nameContains, int limit, CancellationToken cancellationToken)
     {
-        var needle = nameContains.ToLower();
+        var needle = nameContains.ToLowerInvariant();
         var groups = scope.Apply(_db.TestCases).Facts()
             .InSuite(suite)
             .Where(f => f.NameKey.ToLower().Contains(needle))
@@ -180,7 +180,7 @@ public sealed class TestHistoryQueries : ITestHistoryQueries
         if (status != null) query = query.Where(f => f.Status == status);
         if (!string.IsNullOrEmpty(nameContains))
         {
-            var needle = nameContains.ToLower();
+            var needle = nameContains.ToLowerInvariant();
             query = query.Where(f => f.NameKey.ToLower().Contains(needle));
         }
 
@@ -295,17 +295,17 @@ public sealed class TestHistoryQueries : ITestHistoryQueries
         }
         if (!string.IsNullOrEmpty(filter.NameContains))
         {
-            var needle = filter.NameContains.ToLower();
+            var needle = filter.NameContains.ToLowerInvariant();
             facts = facts.Where(f => f.NameKey.ToLower().Contains(needle));
         }
         if (!string.IsNullOrEmpty(filter.ClassContains))
         {
-            var needle = filter.ClassContains.ToLower();
+            var needle = filter.ClassContains.ToLowerInvariant();
             facts = facts.Where(f => f.ClassName != null && f.ClassName.ToLower().Contains(needle));
         }
         if (!string.IsNullOrEmpty(filter.ErrorContains))
         {
-            var needle = filter.ErrorContains.ToLower();
+            var needle = filter.ErrorContains.ToLowerInvariant();
             facts = facts.Where(f => f.ErrorMessage != null && f.ErrorMessage.ToLower().Contains(needle));
         }
         return facts;

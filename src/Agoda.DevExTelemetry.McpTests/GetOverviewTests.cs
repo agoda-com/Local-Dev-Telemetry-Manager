@@ -1,3 +1,4 @@
+using Agoda.DevExTelemetry.McpTests.Eval;
 using Agoda.DevExTelemetry.McpTests.Infrastructure;
 using ModelContextProtocol.Client;
 using NUnit.Framework;
@@ -46,5 +47,19 @@ public class GetOverviewTests
 
         result.IsError.ShouldBeTrue();
         result.ErrorText.ShouldContain("top");
+    }
+
+    [Test]
+    public async Task GetOverview_Export_ReturnsSameRowsAsTool()
+    {
+        await _host.SeedAsync(PlantedProblems.Build(McpTestHost.Now).ToArray());
+
+        var toolRows = await _client.CallAllPagesAsync("get_overview", new { repository = PlantedProblems.REPOSITORY, limit = 4 });
+        var first = await _client.CallAsync("get_overview", new { repository = PlantedProblems.REPOSITORY });
+        using var http = _host.CreateClient();
+        var (_, exportRows) = await http.GetCsvAsync(first.ExportUrl);
+
+        toolRows.Count.ShouldBeGreaterThan(4);
+        exportRows.Select(r => r.ToString()).ShouldBe(toolRows.Select(r => r.ToString()));
     }
 }

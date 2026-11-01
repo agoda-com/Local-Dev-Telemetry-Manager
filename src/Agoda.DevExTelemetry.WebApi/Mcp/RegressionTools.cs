@@ -26,6 +26,8 @@ public sealed class RegressionTools
         baseline_samples, current_samples, before_p50_ms, after_p50_ms, change_pct, shift_started_on (first day in the
         current window whose median is above the threshold), reason, evidence (the data tool call that shows it).
         Ranked by change_pct, largest first.
+        Filters: kind, repository, project, branch, environment. Thresholds: min_increase_pct (20), min_samples (10),
+        current_days (7), baseline_days (28).
         """)]
     public Task<CallToolResult> FindRegressions(
         [Description(ToolArgs.REPOSITORY)] string? repository = null,

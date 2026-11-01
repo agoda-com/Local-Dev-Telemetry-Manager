@@ -206,13 +206,13 @@ public sealed class TestAggregateQueries : ITestAggregateQueries
 
         if (!string.IsNullOrEmpty(filter.NameContains))
         {
-            var text = filter.NameContains.ToLower();
+            var text = filter.NameContains.ToLowerInvariant();
             facts = facts.Where(f => f.Name.ToLower().Contains(text) || f.NameKey.ToLower().Contains(text));
         }
 
         if (!string.IsNullOrEmpty(filter.ClassContains))
         {
-            var text = filter.ClassContains.ToLower();
+            var text = filter.ClassContains.ToLowerInvariant();
             facts = facts.Where(f => f.ClassName != null && f.ClassName.ToLower().Contains(text));
         }
 

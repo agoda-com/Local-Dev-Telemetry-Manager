@@ -131,7 +131,7 @@ curl -s "http://compilation-metrics/api/export/get_tests.csv?suite_id=ab12cd34&e
 duckdb -c "select test_key, fail_rate, status_sequence from 'tests.csv' where failed > 0 and passed > 0 order by fail_rate desc"
 ```
 
-Set `Mcp:PublicBaseUrl` if the server sits behind a proxy that doesn't send `X-Forwarded-Host`/`X-Forwarded-Proto`.
+`export_url` uses `Mcp:PublicBaseUrl` when it is set. Otherwise it uses the request's host, honouring `X-Forwarded-Proto`/`X-Forwarded-Host` (only for this URL).
 
 ## Development
 

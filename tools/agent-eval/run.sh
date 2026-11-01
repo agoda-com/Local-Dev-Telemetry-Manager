@@ -2,7 +2,8 @@
 # Agent eval for the MCP server (issue #27, Phase 5).
 # Seeds the planted-problems dataset into a SQLite file, starts the WebApi on it, and runs Claude Code
 # against /mcp twice: once with every tool, once with only the data tools (and curl for exports).
-# Each answer is graded by grade.py: all planted problems found, no noise reported.
+# Each answer is graded by grade.py: all planted problems found, no noise reported, and (data-only run) no
+# analysis results fetched through /api/export either.
 #
 # Usage: tools/agent-eval/run.sh [model]   (default model: sonnet; needs the claude CLI and the .NET 10 SDK)
 set -euo pipefail
@@ -34,15 +35,23 @@ analysis="get_overview find_slow_tests find_flaky_tests find_failing_tests find_
 blocked=""
 for t in $analysis; do blocked="$blocked mcp__dx-telemetry__$t"; done
 
+# Requests to analysis exports, from server log lines after line $1 (the data-only run must make none).
+analysis_exports() {
+  tail -n +"$(( $1 + 1 ))" "$out/server.log" | grep -oE '"RequestPath":"/api/export/(get_overview|find_[a-z_]+|explain_build_time)\.csv"' || true
+}
+
 run() {
-  local name="$1"; shift
+  local name="$1" check_exports="$2"; shift 2
   echo "== Run: $name"
+  local start; start=$(wc -l < "$out/server.log")
   (cd "$out" && claude -p --model "$model" --mcp-config "$here/mcp.json" --strict-mcp-config \
      --allowedTools "mcp__dx-telemetry" "Bash(curl:*)" "$@" < "$here/prompt.md") > "$out/$name.md"
-  python3 "$here/grade.py" "$out/$name.md" | tee "$out/$name.grade.txt"
+  : > "$out/$name.forbidden.txt"
+  if [ "$check_exports" = yes ]; then analysis_exports "$start" > "$out/$name.forbidden.txt"; fi
+  python3 "$here/grade.py" "$out/$name.md" "$out/$name.forbidden.txt" | tee "$out/$name.grade.txt"
 }
 
 status=0
-run all-tools || status=1
-run data-tools-only --disallowedTools $blocked || status=1
+run all-tools no || status=1
+run data-tools-only yes --disallowedTools $blocked || status=1
 exit $status

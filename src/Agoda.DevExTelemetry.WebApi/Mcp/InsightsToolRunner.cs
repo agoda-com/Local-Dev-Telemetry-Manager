@@ -123,15 +123,29 @@ public sealed class InsightsToolRunner : IInsightsToolRunner
 
     public string ExportUrl(string dataset, InsightsArgs args)
     {
-        var baseUrl = _options.PublicBaseUrl;
-        if (baseUrl == null)
-        {
-            var request = _httpContextAccessor.HttpContext?.Request;
-            baseUrl = request == null ? string.Empty : $"{request.Scheme}://{request.Host}{request.PathBase}";
-        }
+        var baseUrl = _options.PublicBaseUrl ?? RequestBaseUrl(_httpContextAccessor.HttpContext?.Request);
 
         var query = args.ToQueryString(DatasetNames.PagingArgs);
         return $"{baseUrl}/api/export/{dataset}.csv" + (query.Length > 0 ? "?" + query : string.Empty);
+    }
+
+    /// <summary>
+    /// The base URL the caller reached us on. X-Forwarded-Proto/Host are honoured here only, for this URL, so a
+    /// proxy in front of the server yields a working link; the rest of the app does not trust them.
+    /// </summary>
+    private static string RequestBaseUrl(HttpRequest? request)
+    {
+        if (request == null) return string.Empty;
+        var scheme = FirstForwarded(request, "X-Forwarded-Proto") ?? request.Scheme;
+        var host = FirstForwarded(request, "X-Forwarded-Host") ?? request.Host.ToString();
+        return $"{scheme}://{host}{request.PathBase}";
+    }
+
+    private static string? FirstForwarded(HttpRequest request, string header)
+    {
+        var value = request.Headers[header].ToString();
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        return value.Split(',')[0].Trim();
     }
 
     private static string Summarise(string dataset, Table table, InsightsResultMeta meta)

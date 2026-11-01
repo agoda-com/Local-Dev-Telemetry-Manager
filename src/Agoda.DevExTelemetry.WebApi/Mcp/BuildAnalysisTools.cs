@@ -61,6 +61,8 @@ public sealed class BuildAnalysisTools
         Columns: dimension, value, count, avg_ms, p50_ms, p95_ms, ratio_to_fastest, dimension_spread, dimension_rank, reason, evidence
         (get_build_stats grouped by the dimension). One row per group, slowest first within a dimension.
         An empty table with a note means the variation is noise: no dimension has two qualifying groups.
+        Filters: series_id (required) and the common scope (repository, project, branch, environment, days or from/to).
+        Thresholds: min_samples (5), top_dimensions (3).
         """)]
     public Task<CallToolResult> ExplainBuildTime(
         [Description("The build series (series_id from list_build_series or find_slow_builds). Required.")] string series_id,
