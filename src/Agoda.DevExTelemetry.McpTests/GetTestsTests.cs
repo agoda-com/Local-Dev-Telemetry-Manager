@@ -235,7 +235,7 @@ public class GetTestsTests
     [Test]
     public async Task GetTests_NameContains_IsCaseInsensitiveOnNameOrKey()
     {
-        (await NUnit(new { name_contains = "e" })).Rows.Select(r => r["name"]).ShouldBe(["E"]);
+        (await NUnit(new { name_contains = "aclass.A" })).Rows.Select(r => r["name"]).ShouldBe(["A"]);
         (await NUnit(new { name_contains = "CCLASS" })).Rows.Select(r => r["name"]).ShouldBe(["E"]);
     }
 
@@ -319,7 +319,7 @@ public class GetTestsTests
     [Test]
     public async Task GetTests_Window_ExcludesOlderExecutions()
     {
-        var result = await _client.CallAsync("get_tests", new { suite_id = NUnitSuite, days = 3, limit = 100 });
+        var result = await _client.CallAsync("get_tests", new { suite_id = NUnitSuite, from = McpTestHost.Now.AddDays(-2.5).ToString("o"), limit = 100 });
 
         // Only runs at -2 and -1 days (t+3, t+4).
         Row(result, "A")["runs"].ShouldBe("2");
@@ -366,9 +366,9 @@ public class GetTestsTests
     [TestCase("sort", "bogus")]
     [TestCase("group_by", "user")]
     [TestCase("suite_id", "deadbeef")]
-    [TestCase("min_runs", "many")]
+    [TestCase("min_runs", -1)]
     [TestCase("cursor", "not-a-cursor")]
-    public async Task GetTests_BadArgument_ReturnsToolErrorNamingIt(string name, string value)
+    public async Task GetTests_BadArgument_ReturnsToolErrorNamingIt(string name, object value)
     {
         var result = ToolResult.Parse(await _client.CallToolAsync("get_tests", new Dictionary<string, object?> { [name] = value }));
 
