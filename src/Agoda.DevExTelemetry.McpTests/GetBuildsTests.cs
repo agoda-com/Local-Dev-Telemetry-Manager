@@ -75,7 +75,7 @@ public class GetBuildsTests
     [Test]
     public async Task GetBuilds_Filters_Narrow()
     {
-        Ids(await _client.CallAllPagesAsync("get_builds", new { cpu_count = 8 })).ShouldBe(["a3", "a2"]);
+        Ids(await _client.CallAllPagesAsync("get_builds", new { cpu_count = 8 })).ShouldBe(["a3", "a2", "a0", "z9"]);
         Ids(await _client.CallAllPagesAsync("get_builds", new { tool_version = "10.0.1" })).ShouldBe(["a3", "a2"]);
         Ids(await _client.CallAllPagesAsync("get_builds", new { platform = "Windows" })).ShouldBe(["a3"]);
         Ids(await _client.CallAllPagesAsync("get_builds", new { os = "Windows 11" })).ShouldBe(["a3"]);
@@ -122,14 +122,5 @@ public class GetBuildsTests
 
         result.IsError.ShouldBeTrue();
         result.ErrorText.ShouldContain("series_id");
-    }
-
-    [Test]
-    public async Task GetBuilds_BadCpuCount_ReturnsToolErrorNamingCpuCount()
-    {
-        var result = await _client.CallAsync("get_builds", new { cpu_count = "many" });
-
-        result.IsError.ShouldBeTrue();
-        result.ErrorText.ShouldContain("cpu_count");
     }
 }

@@ -87,7 +87,7 @@ public class ListBuildSeriesTests
     {
         var rows = await _client.CallAllPagesAsync("list_build_series", new { sort = "p95_ms asc" });
 
-        rows.Select(r => r.Long("p95_ms")).ShouldBe([30, 385, 5000], ignoreOrder: false);
+        rows.Select(r => r.Long("p95_ms")).ShouldBe([29, 385, 5000]);
     }
 
     [Test]

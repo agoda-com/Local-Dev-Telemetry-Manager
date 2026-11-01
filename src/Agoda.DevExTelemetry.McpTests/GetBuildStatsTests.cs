@@ -60,7 +60,7 @@ public class GetBuildStatsTests
     {
         var rows = await _client.CallAllPagesAsync("get_build_stats", new { group_by = "cpu_count" });
 
-        rows.Select(r => r["cpu_count"]).ShouldBe(["8", "16"].OrderBy(x => int.Parse(x)).Select(x => x));
+        rows.Select(r => r["cpu_count"]).ShouldBe(["8", "16"]);
         var eight = rows.Single(r => r["cpu_count"] == "8");
         eight.Long("count").ShouldBe(5);
         eight.Long("p50_ms").ShouldBe(300);
@@ -116,7 +116,7 @@ public class GetBuildStatsTests
         var byTotal = await _client.CallAllPagesAsync("get_build_stats", new { group_by = "day", sort = "total_ms desc" });
         var byP50 = await _client.CallAllPagesAsync("get_build_stats", new { group_by = "day", sort = "p50_ms asc" });
 
-        byTotal.Select(r => r["day"]).ShouldBe(["2026-03-17", "2026-03-16", "2026-03-15", "2026-03-10"]);
+        byTotal.Select(r => r["day"]).ShouldBe(["2026-03-17", "2026-03-16", "2026-03-10", "2026-03-15"]); // 10 and 15 tie at 1000: group asc
         byP50.Select(r => r["day"]).ShouldBe(["2026-03-10", "2026-03-15", "2026-03-16", "2026-03-17"]);
         byP50[0].Long("p50_ms").ShouldBe(250);
     }
