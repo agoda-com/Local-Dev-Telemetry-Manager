@@ -28,13 +28,14 @@ public class FindSlowBuildsTests
         var builds = new List<object>();
         // The default window is 14 days, so its halves split at now - 7 days.
         for (var i = 0; i < 6; i++)
+        for (var k = 0; k < 2; k++)
         {
             // .Net: 1000 ms in the first half, 1500 ms in the second -> p50 1250, p95 1500, trend +50%.
-            builds.Add(Seed.Build(now.AddDays(-13 + i), 1000));
-            builds.Add(Seed.Build(now.AddDays(-5 + i), 1500));
+            builds.Add(Seed.Build(now.AddDays(-13 + i).AddMinutes(k), 1000));
+            builds.Add(Seed.Build(now.AddDays(-6 + i).AddMinutes(k), 1500));
             // vitehmr hot: flat 1300 ms -> p50 1300 (slower than .Net by p50), p95 1300 (faster by p95).
-            builds.Add(Seed.Build(now.AddDays(-13 + i), 1300, metricType: "vitehmr", project: "Web.Client", category: "Clientside", reloadType: "hot"));
-            builds.Add(Seed.Build(now.AddDays(-5 + i), 1300, metricType: "vitehmr", project: "Web.Client", category: "Clientside", reloadType: "hot"));
+            builds.Add(Seed.Build(now.AddDays(-13 + i).AddMinutes(k), 1300, metricType: "vitehmr", project: "Web.Client", category: "Clientside", reloadType: "hot"));
+            builds.Add(Seed.Build(now.AddDays(-6 + i).AddMinutes(k), 1300, metricType: "vitehmr", project: "Web.Client", category: "Clientside", reloadType: "hot"));
         }
         // Gradle: only 4 builds, slowest of all.
         for (var i = 0; i < 4; i++)
@@ -101,14 +102,15 @@ public class FindSlowBuildsTests
     [Test]
     public async Task FindSlowBuilds_HalfWithFewerThanMinSamples_HasEmptyTrend()
     {
-        // Each half holds 6 builds of the .Net and vitehmr series; Gradle has 4 in the second half only.
+        // Each half holds 12 builds of the .Net and vitehmr series; Gradle has 4 in the second half only.
         var rows = await _client.CallAllPagesAsync("find_slow_builds", new { min_samples = 4 });
 
         rows.Single(r => r["series_id"] == NetId).Double("trend_pct").ShouldBe(50.0);
         rows.Single(r => r["series_id"] == GradleId).NullableString("trend_pct").ShouldBeNull();
 
-        var strict = await _client.CallAllPagesAsync("find_slow_builds", new { min_samples = 7 });
-        strict.ShouldBeEmpty();
+        var strict = await _client.CallAllPagesAsync("find_slow_builds", new { min_samples = 13 });
+        strict.Select(r => r["series_id"]).ShouldBe([ViteId, NetId]);
+        strict.ShouldAllBe(r => r.NullableString("trend_pct") == null);
     }
 
     [Test]
@@ -128,7 +130,7 @@ public class FindSlowBuildsTests
     {
         var rows = await _client.CallAllPagesAsync("find_slow_builds");
 
-        rows.Single(r => r["series_id"] == NetId)["reason"].ShouldContain("p50 1250 ms over 12 builds");
+        rows.Single(r => r["series_id"] == NetId)["reason"].ShouldContain("p50 1250 ms over 24 builds");
         rows.Single(r => r["series_id"] == NetId)["reason"].ShouldContain("+50%");
     }
 
@@ -139,13 +141,12 @@ public class FindSlowBuildsTests
 
         foreach (var row in rows)
         {
-            var evidence = await _client.CallEvidenceAsync(row["evidence"]);
-            evidence.IsError.ShouldBeFalse(evidence.ErrorText);
-            evidence.Rows.Sum(r => r.Long("count")).ShouldBe(row.Long("count"));
+            var evidence = await _client.EvidenceRowsAsync(row["evidence"]);
+            evidence.Sum(r => r.Long("count")).ShouldBe(row.Long("count"));
         }
 
-        var net = await _client.CallEvidenceAsync(rows.Single(r => r["series_id"] == NetId)["evidence"]);
-        net.Rows.Select(r => r.Long("p50_ms")).Distinct().OrderBy(x => x).ShouldBe([1000L, 1500L]);
+        var net = await _client.EvidenceRowsAsync(rows.Single(r => r["series_id"] == NetId)["evidence"]);
+        net.Select(r => r.Long("p50_ms")).Distinct().OrderBy(x => x).ShouldBe([1000L, 1500L]);
     }
 
     [Test]

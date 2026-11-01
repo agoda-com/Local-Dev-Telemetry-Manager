@@ -64,15 +64,7 @@ public class BuildRegressionTests
     }
 
     private Task<List<CsvRow>> BuildRegressions(object? args = null) =>
-        _client.CallAllPagesAsync("find_regressions", Merge(args));
-
-    private static Dictionary<string, object?> Merge(object? args)
-    {
-        var dict = new Dictionary<string, object?> { ["kind"] = "build" };
-        if (args != null)
-            foreach (var p in args.GetType().GetProperties()) dict[p.Name] = p.GetValue(args);
-        return dict;
-    }
+        _client.CallAllPagesAsync("find_regressions", args ?? new { kind = "build" });
 
     [Test]
     public async Task FindRegressions_StepChangeInOneSeries_IsDetectedWithTheStartDate()
@@ -113,7 +105,7 @@ public class BuildRegressionTests
     [Test]
     public async Task FindRegressions_LowerMinIncrease_FlagsTheSmallerIncreaseAndNamesTheReloadType()
     {
-        var rows = await BuildRegressions(new { min_increase_pct = 5.0 });
+        var rows = await BuildRegressions(new { kind = "build", min_increase_pct = 5.0 });
 
         rows.Select(r => r["subject_id"]).ShouldBe([NetId, ViteId]);
         var vite = rows[1];
@@ -125,7 +117,7 @@ public class BuildRegressionTests
     [Test]
     public async Task FindRegressions_HigherMinIncrease_DropsTheSeries()
     {
-        var rows = await BuildRegressions(new { min_increase_pct = 50.0 });
+        var rows = await BuildRegressions(new { kind = "build", min_increase_pct = 50.0 });
 
         rows.ShouldBeEmpty();
     }
@@ -133,7 +125,7 @@ public class BuildRegressionTests
     [Test]
     public async Task FindRegressions_LowerMinSamples_FlagsTheSmallSeries()
     {
-        var rows = await BuildRegressions(new { min_samples = 4 });
+        var rows = await BuildRegressions(new { kind = "build", min_samples = 4 });
 
         rows.Select(r => r["subject_id"]).ShouldBe([GradleId, NetId]);
         rows[0].Double("change_pct").ShouldBe(200.0);
@@ -142,7 +134,7 @@ public class BuildRegressionTests
     [Test]
     public async Task FindRegressions_HigherMinSamples_DropsTheSeries()
     {
-        var rows = await BuildRegressions(new { min_samples = 13 });
+        var rows = await BuildRegressions(new { kind = "build", min_samples = 13 });
 
         rows.ShouldBeEmpty();
     }
@@ -151,7 +143,7 @@ public class BuildRegressionTests
     public async Task FindRegressions_ShorterCurrentWindow_ChangesWhatIsCompared()
     {
         // The last 3 days hold only 1350 ms builds (6 of them), baseline = the 28 days before (includes the old 1000 ms and 1350 ms builds).
-        var rows = await BuildRegressions(new { current_days = 3, baseline_days = 28, min_samples = 6 });
+        var rows = await BuildRegressions(new { kind = "build", current_days = 3, baseline_days = 28, min_samples = 6 });
 
         rows.Single(r => r["subject_id"] == NetId)["shift_started_on"].ShouldBe("2026-03-15");
     }
@@ -161,11 +153,10 @@ public class BuildRegressionTests
     {
         var rows = await BuildRegressions();
 
-        var evidence = await _client.CallEvidenceAsync(rows[0]["evidence"]);
+        var evidence = await _client.EvidenceRowsAsync(rows[0]["evidence"]);
 
-        evidence.IsError.ShouldBeFalse(evidence.ErrorText);
-        evidence.Rows.Sum(r => r.Long("count")).ShouldBe(24);
-        var byDay = evidence.Rows.ToDictionary(r => r["day"], r => r.Long("p50_ms"));
+        evidence.Sum(r => r.Long("count")).ShouldBe(24);
+        var byDay = evidence.ToDictionary(r => r["day"], r => r.Long("p50_ms"));
         byDay["2026-03-13"].ShouldBe(1000);
         byDay["2026-03-14"].ShouldBe(1350);
         byDay["2026-03-17"].ShouldBe(1350);
@@ -174,14 +165,13 @@ public class BuildRegressionTests
     [Test]
     public async Task FindRegressions_Evidence_RunsForEveryFlaggedRow()
     {
-        var rows = await BuildRegressions(new { min_increase_pct = 5.0, min_samples = 4 });
+        var rows = await BuildRegressions(new { kind = "build", min_increase_pct = 5.0, min_samples = 4 });
 
         rows.Count.ShouldBe(3);
         foreach (var row in rows)
         {
-            var evidence = await _client.CallEvidenceAsync(row["evidence"]);
-            evidence.IsError.ShouldBeFalse(evidence.ErrorText);
-            evidence.Rows.Sum(r => r.Long("count")).ShouldBe(row.Long("baseline_samples") + row.Long("current_samples"));
+            var evidence = await _client.EvidenceRowsAsync(row["evidence"]);
+            evidence.Sum(r => r.Long("count")).ShouldBe(row.Long("baseline_samples") + row.Long("current_samples"));
         }
     }
 

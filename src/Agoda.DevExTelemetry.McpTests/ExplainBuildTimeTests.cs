@@ -136,9 +136,8 @@ public class ExplainBuildTimeTests
 
         foreach (var row in rows)
         {
-            var evidence = await _client.CallEvidenceAsync(row["evidence"]);
-            evidence.IsError.ShouldBeFalse(evidence.ErrorText);
-            var group = evidence.Rows.Single(r => r[row["dimension"]] == row["value"]);
+            var evidence = await _client.EvidenceRowsAsync(row["evidence"]);
+            var group = evidence.Single(r => r[row["dimension"]] == row["value"]);
             group.Long("count").ShouldBe(row.Long("count"));
             group.Long("p50_ms").ShouldBe(row.Long("p50_ms"));
         }
