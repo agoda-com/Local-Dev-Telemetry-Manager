@@ -1,16 +1,22 @@
 using System.Runtime.CompilerServices;
 using Agoda.DevExTelemetry.Core.Configs;
 using Agoda.DevExTelemetry.Core.Data;
+using Agoda.DevExTelemetry.Core.Insights;
+using Agoda.DevExTelemetry.WebApi.Mcp;
 using Agoda.IoC.NetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi;
+using ModelContextProtocol.Protocol;
 using Serilog;
 
 [assembly: InternalsVisibleTo("Agoda.DevExTelemetry.IntegrationTests")]
+[assembly: InternalsVisibleTo("Agoda.DevExTelemetry.McpTests")]
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,6 +86,24 @@ builder.Services.AddSwaggerGen(c =>
     c.EnableAnnotations();
 });
 
+builder.Services.TryAddSingleton(System.TimeProvider.System);
+
+// MCP server for coding agents (issue #27): read-only insights tools over Streamable HTTP at /mcp.
+builder.Services
+    .AddMcpServer(options =>
+    {
+        options.ServerInfo = new Implementation
+        {
+            Name = "dx-telemetry",
+            Title = "DX Telemetry",
+            Version = assemName.Version?.ToString() ?? "0.0.0"
+        };
+        options.ServerInstructions = ServerInstructions.TEXT;
+    })
+    .WithHttpTransport(options => options.Stateless = true)
+    .WithToolsFromAssembly(typeof(Program).Assembly)
+    .WithPromptsFromAssembly(typeof(Program).Assembly);
+
 builder.Services.AutoWireAssembly(new[]
 {
     typeof(Program).Assembly,
@@ -110,6 +134,14 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+var forwardedHeaders = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+};
+forwardedHeaders.KnownIPNetworks.Clear();
+forwardedHeaders.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeaders);
+
 app.UseRequestDecompression();
 app.UseCors();
 app.UseSerilogRequestLogging();
@@ -124,6 +156,11 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Agoda.DevExTelemetry");
 });
+
+if (app.Services.GetRequiredService<IInsightsOptions>().McpEnabled)
+    app.MapMcp("/mcp");
+else
+    app.Map("/mcp", () => Microsoft.AspNetCore.Http.Results.NotFound());
 
 app.Map("/api/{**catch-all}", () => Microsoft.AspNetCore.Http.Results.NotFound());
 app.MapFallbackToFile("index.html");
