@@ -104,7 +104,7 @@ public class AgentEvalDataToolsTests
         result.Rows[0]["test_key"].ShouldEndWith(PlantedProblems.SLOW_CLASS);
         var perTest = await _client.CallAsync("get_tests", new
         {
-            suite_id = PlantedProblems.SuiteId, sort = "total_ms desc", limit = 1
+            suite_id = PlantedProblems.SuiteId, sort = "total_ms desc", min_runs = 3, limit = 1
         });
         perTest.Rows[0]["test_key"].ShouldContain(PlantedProblems.SLOW_CLASS);
     }

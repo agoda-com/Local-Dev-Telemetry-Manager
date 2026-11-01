@@ -146,7 +146,7 @@ public static class PlantedProblems
             {
                 var at = dayStart.AddDays(-day).AddHours(8 + b * 1.5);
                 if (at > now) continue;
-                var regressed = day < REGRESSION_DAYS_AGO;
+                var regressed = day <= REGRESSION_DAYS_AGO;
                 var baseMs = 20_000 + (day * 37 + b * 211) % 2_000;
                 yield return Seed.Build(at, regressed ? baseMs * 1.35 : baseMs,
                     metricType: ".Net", repository: REPOSITORY, project: API_PROJECT, category: "API",
