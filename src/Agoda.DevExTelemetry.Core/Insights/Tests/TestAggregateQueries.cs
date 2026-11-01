@@ -194,9 +194,12 @@ public sealed class TestAggregateQueries : ITestAggregateQueries
         return (rows, total);
     }
 
-    private IQueryable<TestCaseFact> BuildFacts(InsightsScope scope, TestsFilter filter)
+    private IQueryable<TestCaseFact> BuildFacts(InsightsScope scope, TestsFilter filter) =>
+        ApplyExecutionFilters(scope.Apply(_db.TestCases).Facts(), filter);
+
+    /// <summary>The suite, runner, name, class and key filters, which apply to executions before grouping. Shared with the analysis queries.</summary>
+    internal static IQueryable<TestCaseFact> ApplyExecutionFilters(IQueryable<TestCaseFact> facts, TestsFilter filter)
     {
-        var facts = scope.Apply(_db.TestCases).Facts();
         if (filter.Suite != null) facts = facts.InSuite(filter.Suite);
         if (filter.TestRunner != null)
         {
@@ -214,6 +217,12 @@ public sealed class TestAggregateQueries : ITestAggregateQueries
         {
             var text = filter.ClassContains.ToLowerInvariant();
             facts = facts.Where(f => f.ClassName != null && f.ClassName.ToLower().Contains(text));
+        }
+
+        if (filter.NameKeys != null)
+        {
+            var keys = filter.NameKeys.ToList();
+            facts = facts.Where(f => keys.Contains(f.NameKey));
         }
 
         return facts;

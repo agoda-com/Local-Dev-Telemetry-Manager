@@ -50,6 +50,12 @@ public sealed record TestsFilter
     /// <summary>Case-insensitive; matches ClassName.</summary>
     public string? ClassContains { get; init; }
 
+    /// <summary>
+    /// Only these name keys (test grouping only). Used to enrich the rows of one page without aggregating every
+    /// test; the text filters still apply to the executions, so a page row aggregates exactly as it did unfiltered.
+    /// </summary>
+    public IReadOnlyCollection<string>? NameKeys { get; init; }
+
     public int? MinRuns { get; init; }
 
     public double? MinAvgMs { get; init; }

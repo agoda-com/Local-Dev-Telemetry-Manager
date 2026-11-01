@@ -50,34 +50,54 @@ public sealed class TestRegressionDetector : IRegressionDetector
         var rows = new List<RegressionRow>();
         var scopeArgs = Evidence.ScopeArgs(query.Scope);
 
-        // Step 2: a narrow (key, time, duration) projection for the surviving tests only, in chunks of name keys.
+        // Step 2: a narrow (key, time, duration) projection for the surviving tests only, in chunks of name keys. Each chunk is
+        // streamed in (test, time) order and folded one test at a time: a test's durations are compared and dropped before the
+        // next test's are read, so only one test's samples are ever in memory and only result rows accumulate.
         foreach (var chunk in candidates.Chunk(KEY_CHUNK))
         {
             var nameKeys = chunk.Select(c => c.NameKey).Distinct().ToList();
-            var samples = await query.Scope.Apply(_db.TestCases).Facts()
+            var wanted = chunk.Select(c => (c.Repository, c.Project, c.TestRunner, c.NameKey)).ToHashSet();
+            var stream = query.Scope.Apply(_db.TestCases).Facts()
                 .Where(f => f.Status == PASSED && f.DurationMs != null && nameKeys.Contains(f.NameKey))
-                .Select(f => new { f.Repository, f.Project, f.TestRunner, f.NameKey, f.ReceivedAt, Duration = f.DurationMs!.Value })
-                .ToListAsync(cancellationToken);
+                .OrderBy(f => f.Repository).ThenBy(f => f.Project).ThenBy(f => f.TestRunner).ThenBy(f => f.NameKey)
+                .ThenBy(f => f.ReceivedAt)
+                .Select(f => new { f.Repository, f.Project, f.TestRunner, f.NameKey, f.ReceivedAt, Duration = f.DurationMs!.Value });
 
-            var byTest = samples.ToLookup(s => (s.Repository, s.Project, s.TestRunner, s.NameKey));
-            foreach (var c in chunk)
+            (string Repository, string Project, string TestRunner, string NameKey)? current = null;
+            var durations = new List<DurationSample>();
+            await foreach (var s in stream.AsAsyncEnumerable().WithCancellation(cancellationToken))
             {
-                var durations = byTest[(c.Repository, c.Project, c.TestRunner, c.NameKey)]
-                    .Select(s => new DurationSample(DateTime.SpecifyKind(s.ReceivedAt, DateTimeKind.Utc), s.Duration))
-                    .ToList();
-                var comparison = RegressionMath.Compare(durations, query);
-                if (comparison == null) continue;
+                var key = (s.Repository, s.Project, s.TestRunner, s.NameKey);
+                if (current != key)
+                {
+                    Flush(current, durations, wanted, query, scopeArgs, rows);
+                    current = key;
+                    durations = [];
+                }
 
-                var testKey = TestKey.Format(StableId.Suite(c.Repository, c.Project, c.TestRunner), c.NameKey);
-                rows.Add(new RegressionRow(
-                    Kind, testKey, c.Repository, c.Project, c.NameKey,
-                    comparison.BaselineSamples, comparison.CurrentSamples,
-                    comparison.BeforeP50Ms, comparison.AfterP50Ms, comparison.ShiftStartedOn,
-                    RegressionMath.Reason(comparison, "passing runs"),
-                    Evidence.Call("get_test", scopeArgs.Clone().With("test_key", testKey).With("status", "passed"))));
+                durations.Add(new DurationSample(DateTime.SpecifyKind(s.ReceivedAt, DateTimeKind.Utc), s.Duration));
             }
+
+            Flush(current, durations, wanted, query, scopeArgs, rows);
         }
 
         return rows;
+    }
+
+    private void Flush(
+        (string Repository, string Project, string TestRunner, string NameKey)? test, List<DurationSample> durations,
+        HashSet<(string, string, string, string)> wanted, RegressionQuery query, InsightsArgs scopeArgs, List<RegressionRow> rows)
+    {
+        if (test is not { } c || !wanted.Contains(c)) return;
+        var comparison = RegressionMath.Compare(durations, query);
+        if (comparison == null) return;
+
+        var testKey = TestKey.Format(StableId.Suite(c.Repository, c.Project, c.TestRunner), c.NameKey);
+        rows.Add(new RegressionRow(
+            Kind, testKey, c.Repository, c.Project, c.NameKey,
+            comparison.BaselineSamples, comparison.CurrentSamples,
+            comparison.BeforeP50Ms, comparison.AfterP50Ms, comparison.ShiftStartedOn,
+            RegressionMath.Reason(comparison, "passing runs"),
+            Evidence.Call("get_test", scopeArgs.Clone().With("test_key", testKey).With("status", "passed"))));
     }
 }
