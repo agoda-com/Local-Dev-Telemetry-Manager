@@ -121,7 +121,7 @@ public sealed class FlakyTestsDataset : IInsightsDataset
             ? table
             : table with
             {
-                Notes = ["environment includes local runs: local fail-then-pass is often test-driven development, not flakiness; use environment=ci for a cleaner signal"]
+                Notes = ["environment includes local runs: local fail-then-pass is often TDD (test-driven development), not flakiness; use environment=ci for a cleaner signal"]
             };
     }
 
