@@ -81,6 +81,15 @@ public class AgentEvalAllToolsTests
     }
 
     [Test]
+    public async Task FindSlowBuilds_CompileTrendShowsTheSlowdown()
+    {
+        var result = await _client.CallAsync("find_slow_builds", new { repository = PlantedProblems.REPOSITORY });
+
+        var compile = result.Rows.Single(r => r["series_id"] == PlantedProblems.CompileSeriesId);
+        compile.Double("trend_pct").ShouldBeGreaterThan(20);
+    }
+
+    [Test]
     public async Task ExplainBuildTime_RanksToolVersionFirstForTheCompile()
     {
         var result = await _client.CallAsync("explain_build_time", new { series_id = PlantedProblems.CompileSeriesId });
