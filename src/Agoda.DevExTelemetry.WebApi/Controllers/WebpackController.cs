@@ -31,7 +31,7 @@ public class WebpackController : ControllerBase
     [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> Ingest([FromBody] WebpackPayload payload)
     {
-        var platformStr = ((PlatformID)payload.Platform).ToString();
+        var platformStr = payload.Platform.ToString();
         var environment = _environmentDetector.Detect(
             payload.Hostname, payload.IsDebuggerAttached, platformStr, null);
 

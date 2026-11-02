@@ -1,0 +1,38 @@
+{
+  "id": "5b0c9a41-b84a-11f1-8d6a-0242ac120002",
+  "sessionId": "8f14e45f-ceea-467a-9575-3a6a8f2c1d01",
+  "userName": "dev",
+  "cpuCount": 8,
+  "hostname": "dev-box",
+  "platform": "Linux",
+  "os": "6.18.0",
+  "timeTaken": 9875,
+  "branch": "main",
+  "projectName": "demo",
+  "repository": "https://github.com/example/demo.git",
+  "repositoryName": "demo",
+  "timestamp": 1793577600000,
+  "builtAt": "2026-11-02T00:00:00.000Z",
+  "totalMemory": 17179869184,
+  "cpuModels": [
+    "cpu"
+  ],
+  "cpuSpeed": [
+    3000
+  ],
+  "nodeVersion": "v24.22.0",
+  "v8Version": "13.6",
+  "commitSha": "0123456789abcdef0123456789abcdef01234567",
+  "customIdentifier": "test",
+  "type": "command",
+  "phase": "test",
+  "command": "pnpm run test",
+  "runner": "pnpm",
+  "target": "test",
+  "project": "demo",
+  "rootCommand": "pnpm run test",
+  "exitCode": 130,
+  "success": false,
+  "outcome": "aborted",
+  "signal": "SIGINT"
+}

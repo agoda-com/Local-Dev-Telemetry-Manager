@@ -1,0 +1,34 @@
+{
+  "id": "5b0c9a40-b84a-11f1-8d6a-0242ac120002",
+  "sessionId": "8f14e45f-ceea-467a-9575-3a6a8f2c1d01",
+  "userName": "dev",
+  "cpuCount": 8,
+  "hostname": "dev-box",
+  "platform": "Linux",
+  "os": "6.18.0",
+  "timeTaken": 4210,
+  "branch": "main",
+  "projectName": "demo",
+  "repository": "https://github.com/example/demo.git",
+  "repositoryName": "demo",
+  "timestamp": 1793577600000,
+  "builtAt": "2026-11-02T00:00:00.000Z",
+  "totalMemory": 17179869184,
+  "cpuModels": [
+    "cpu"
+  ],
+  "cpuSpeed": [
+    3000
+  ],
+  "nodeVersion": "v24.22.0",
+  "v8Version": "13.6",
+  "commitSha": "0123456789abcdef0123456789abcdef01234567",
+  "customIdentifier": "build",
+  "type": "vite",
+  "viteVersion": "4.52.4",
+  "bundleStats": {
+    "bootstrapChunkSizeBytes": 183214
+  },
+  "file": null,
+  "transformTimeMs": 2950
+}

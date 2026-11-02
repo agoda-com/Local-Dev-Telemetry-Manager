@@ -1,0 +1,84 @@
+{
+  "id": "contract-0001",
+  "userName": "dev",
+  "cpuCount": 8,
+  "hostname": "dev-box",
+  "platform": "Linux",
+  "os": "6.18.0",
+  "timeTaken": 1234,
+  "branch": "main",
+  "projectName": "demo",
+  "repository": "https://github.com/example/demo.git",
+  "repositoryName": "demo",
+  "timestamp": 1793577600000,
+  "builtAt": "2026-11-02T00:00:00.000Z",
+  "totalMemory": 17179869184,
+  "cpuModels": [
+    "cpu"
+  ],
+  "cpuSpeed": [
+    3000
+  ],
+  "nodeVersion": "v24.22.0",
+  "v8Version": "13.6",
+  "commitSha": "0123456789abcdef0123456789abcdef01234567",
+  "customIdentifier": "test",
+  "type": "playwright",
+  "playwrightVersion": "1.62.0",
+  "runId": "run-0002",
+  "workers": 2,
+  "retries": 1,
+  "files": [
+    {
+      "name": "src/a.spec.tsx",
+      "status": "passed",
+      "duration": 900
+    }
+  ],
+  "testcases": [
+    {
+      "name": "passes",
+      "fullName": "a.spec.tsx > passes",
+      "file": "src/a.spec.tsx",
+      "project": "chromium",
+      "status": "passed",
+      "retry": 0,
+      "duration": 300,
+      "startTime": "2026-11-02T00:00:00.000Z",
+      "errorMessage": null
+    },
+    {
+      "name": "flaky",
+      "fullName": "a.spec.tsx > flaky",
+      "file": "src/a.spec.tsx",
+      "project": "chromium",
+      "status": "failed",
+      "retry": 0,
+      "duration": 250,
+      "startTime": "2026-11-02T00:00:00.300Z",
+      "errorMessage": "locator not visible"
+    },
+    {
+      "name": "flaky",
+      "fullName": "a.spec.tsx > flaky",
+      "file": "src/a.spec.tsx",
+      "project": "chromium",
+      "status": "passed",
+      "retry": 1,
+      "duration": 200,
+      "startTime": "2026-11-02T00:00:00.600Z",
+      "errorMessage": null
+    },
+    {
+      "name": "fails",
+      "fullName": "a.spec.tsx > fails",
+      "file": "src/a.spec.tsx",
+      "project": "chromium",
+      "status": "timedOut",
+      "retry": 0,
+      "duration": 150,
+      "startTime": "2026-11-02T00:00:00.800Z",
+      "errorMessage": "Test timeout of 30000ms exceeded."
+    }
+  ]
+}

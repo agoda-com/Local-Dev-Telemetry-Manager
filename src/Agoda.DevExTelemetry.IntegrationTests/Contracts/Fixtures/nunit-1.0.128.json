@@ -1,0 +1,49 @@
+{
+  "IsDebuggerAttached": false,
+  "Id": "3f2b8e1c-6a4d-4f0e-9b7a-2c5d8e9f0a11",
+  "UserName": "dev",
+  "CpuCount": 8,
+  "Hostname": "dev-box",
+  "Platform": 4,
+  "Os": "Unix 6.18.0.1",
+  "Branch": "main",
+  "Repository": "https://github.com/example/demo.git",
+  "RepositoryName": "demo",
+  "NUnitTestCases": [
+    {
+      "Id": "0-1001",
+      "Name": "Passes",
+      "Fullname": "Demo.Tests.SampleTests.Passes",
+      "Methodname": "Passes",
+      "Classname": "Demo.Tests.SampleTests",
+      "Runstate": "Runnable",
+      "Seed": 1508563046,
+      "Result": "Passed",
+      "StartTime": "2026-11-02T00:00:00.123+00:00",
+      "StartTimeRaw": "2026-11-02T00:00:00.1230000",
+      "EndTime": "2026-11-02T00:00:00.145+00:00",
+      "EndTimeRaw": "2026-11-02 00:00:00.1450000",
+      "Duration": 0.022,
+      "Asserts": 1,
+      "ParentId": "0-1000"
+    },
+    {
+      "Id": "0-1002",
+      "Name": "Fails",
+      "Fullname": "Demo.Tests.SampleTests.Fails",
+      "Methodname": "Fails",
+      "Classname": "Demo.Tests.SampleTests",
+      "Runstate": "Runnable",
+      "Seed": 902143471,
+      "Result": "Failed",
+      "StartTime": "2026-11-02T00:00:00.146+00:00",
+      "StartTimeRaw": "2026-11-02T00:00:00.1460000",
+      "EndTime": "2026-11-02T00:00:00.191+00:00",
+      "EndTimeRaw": "2026-11-02 00:00:00.1910000",
+      "Duration": 0.045,
+      "Asserts": 1,
+      "ParentId": "0-1000"
+    }
+  ],
+  "RunId": "7d3e2a90-1c4b-4e8f-a6d5-0b9c8e7f6a52"
+}

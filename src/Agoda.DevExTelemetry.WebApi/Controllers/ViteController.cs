@@ -32,7 +32,7 @@ public class ViteController : ControllerBase
     public async Task<IActionResult> Ingest([FromBody] VitePayload payload)
     {
         var metricType = payload.Type ?? "vite";
-        var platformStr = ((PlatformID)payload.Platform).ToString();
+        var platformStr = payload.Platform.ToString();
         var environment = _environmentDetector.Detect(
             payload.Hostname, payload.IsDebuggerAttached, platformStr, null);
 

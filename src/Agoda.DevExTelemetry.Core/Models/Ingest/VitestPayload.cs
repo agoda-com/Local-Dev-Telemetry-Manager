@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Agoda.DevExTelemetry.Core.Models.Ingest.Json;
 
 namespace Agoda.DevExTelemetry.Core.Models.Ingest;
 
@@ -20,7 +21,8 @@ public class VitestPayload
     public string? Hostname { get; set; }
 
     [JsonPropertyName("platform")]
-    public int Platform { get; set; }
+    [JsonConverter(typeof(LenientPlatformConverter))]
+    public PlatformID Platform { get; set; }
 
     [JsonPropertyName("os")]
     public string? Os { get; set; }
@@ -70,6 +72,10 @@ public class VitestTestCase
     [JsonPropertyName("file")]
     public string? File { get; set; }
 
+    /// <summary>agoda-test-metrics sends the test file as <c>filename</c>; older reporters send <c>file</c>.</summary>
+    [JsonPropertyName("filename")]
+    public string? Filename { get; set; }
+
     [JsonPropertyName("status")]
     public string? Status { get; set; }
 
@@ -77,5 +83,6 @@ public class VitestTestCase
     public double? Duration { get; set; }
 
     [JsonPropertyName("errorMessage")]
+    [JsonConverter(typeof(StringOrStringArrayConverter))]
     public string? ErrorMessage { get; set; }
 }

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Agoda.DevExTelemetry.Core.Models.Ingest.Json;
 
 namespace Agoda.DevExTelemetry.Core.Models.Ingest;
 
@@ -17,7 +18,8 @@ public class WebpackPayload
     public string? Hostname { get; set; }
 
     [JsonPropertyName("platform")]
-    public int Platform { get; set; }
+    [JsonConverter(typeof(LenientPlatformConverter))]
+    public PlatformID Platform { get; set; }
 
     [JsonPropertyName("os")]
     public string? Os { get; set; }
@@ -38,10 +40,12 @@ public class WebpackPayload
     public bool IsDebuggerAttached { get; set; }
 
     [JsonPropertyName("timestamp")]
-    public long Timestamp { get; set; }
+    [JsonConverter(typeof(EpochOrIsoConverter))]
+    public long? Timestamp { get; set; }
 
     [JsonPropertyName("builtAt")]
-    public long BuiltAt { get; set; }
+    [JsonConverter(typeof(EpochOrIsoConverter))]
+    public long? BuiltAt { get; set; }
 
     [JsonPropertyName("totalMemory")]
     public long TotalMemory { get; set; }
@@ -50,7 +54,8 @@ public class WebpackPayload
     public List<string>? CpuModels { get; set; }
 
     [JsonPropertyName("cpuSpeed")]
-    public double CpuSpeed { get; set; }
+    [JsonConverter(typeof(NumberOrNumberArrayConverter))]
+    public List<double>? CpuSpeed { get; set; }
 
     [JsonPropertyName("nodeVersion")]
     public string? NodeVersion { get; set; }
@@ -62,6 +67,7 @@ public class WebpackPayload
     public string? CommitSha { get; set; }
 
     [JsonPropertyName("timeTaken")]
+    [JsonConverter(typeof(NumberOrStringConverter))]
     public string? TimeTaken { get; set; }
 
     [JsonPropertyName("devFeedback")]
@@ -74,5 +80,6 @@ public class WebpackDevFeedbackItem
     public string? Type { get; set; }
 
     [JsonPropertyName("timeTaken")]
+    [JsonConverter(typeof(NumberOrStringConverter))]
     public string? TimeTaken { get; set; }
 }

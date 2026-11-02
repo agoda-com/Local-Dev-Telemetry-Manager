@@ -1,0 +1,65 @@
+{
+  "id": "contract-0001",
+  "userName": "dev",
+  "cpuCount": 8,
+  "hostname": "dev-box",
+  "platform": "Linux",
+  "os": "6.18.0",
+  "timeTaken": 1234,
+  "branch": "main",
+  "projectName": "demo",
+  "repository": "https://github.com/example/demo.git",
+  "repositoryName": "demo",
+  "timestamp": 1793577600000,
+  "builtAt": "2026-11-02T00:00:00.000Z",
+  "totalMemory": 17179869184,
+  "cpuModels": [
+    "cpu"
+  ],
+  "cpuSpeed": [
+    3000
+  ],
+  "nodeVersion": "v24.22.0",
+  "v8Version": "13.6",
+  "commitSha": "0123456789abcdef0123456789abcdef01234567",
+  "customIdentifier": "test",
+  "type": "vitest",
+  "vitestVersion": "5.0.3",
+  "mode": "test",
+  "maxConcurrency": 5,
+  "watchMode": false,
+  "testEnvironment": "jsdom",
+  "runId": "run-0001",
+  "files": [
+    {
+      "name": "src/a.test.ts",
+      "collectDuration": 10,
+      "setupDuration": 1,
+      "prepareDuration": 2,
+      "environmentLoad": 30,
+      "status": "fail",
+      "startTime": 1793577600000,
+      "duration": 12
+    }
+  ],
+  "testcases": [
+    {
+      "name": "passes",
+      "status": "pass",
+      "errorMessage": null,
+      "startTime": 1793577600001,
+      "duration": 1,
+      "filename": "src/a.test.ts"
+    },
+    {
+      "name": "fails",
+      "status": "fail",
+      "errorMessage": [
+        "expected 1 to be 2"
+      ],
+      "startTime": 1793577600002,
+      "duration": 2,
+      "filename": "src/a.test.ts"
+    }
+  ]
+}

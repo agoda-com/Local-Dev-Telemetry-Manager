@@ -33,7 +33,7 @@ public class VitestController : ControllerBase
     [RequestSizeLimit(500 * 1024 * 1024)]
     public async Task<IActionResult> Ingest([FromBody] VitestPayload payload)
     {
-        var platformStr = ((PlatformID)payload.Platform).ToString();
+        var platformStr = payload.Platform.ToString();
         var environment = _environmentDetector.Detect(
             payload.Hostname, payload.IsDebuggerAttached, platformStr, payload.RunId);
 
@@ -58,7 +58,7 @@ public class VitestController : ControllerBase
                     TestRunId = testRunId,
                     Name = tc.Name ?? string.Empty,
                     FullName = tc.FullName,
-                    ClassName = tc.File,
+                    ClassName = tc.File ?? tc.Filename,
                     Status = status,
                     DurationMs = tc.Duration,
                     ErrorMessage = Truncate(tc.ErrorMessage, MaxErrorMessageLength)
